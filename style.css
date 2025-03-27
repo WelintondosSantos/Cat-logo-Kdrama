@@ -1,0 +1,179 @@
+:root {
+    --card-width: 200px;
+    --card-height: 300px;
+    --card-radius: 8px;
+    --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --card-hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    --transition-speed: 0.3s;
+    --scale-factor: 1.05;
+    --spacing-unit: 8px;
+    --title-size: 0.9rem;
+}
+.carousel .card {
+    flex: 0 0 5%;
+    margin: 0 0.3rem;
+  }
+  /* Remover espaçamentos extras no container flex do slide */
+  .carousel-item .d-flex {
+    justify-content: center;
+    align-items: center;
+  }
+  #atoresCarousel .card {
+    flex: 1;
+    min-width: 180px;
+    max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Evita que a imagem ultrapasse os limites do card */
+  }
+  
+  #atoresCarousel .card-img-top {
+    width: 100%; /* Garante que a imagem ocupe toda a largura do card */
+    height: 100%; /* Faz com que a imagem ocupe toda a altura disponível */
+    object-fit: cover; /* Corta e ajusta a imagem para preencher o card sem distorcer */
+  }
+  
+/* Ajusta a altura dos cards dentro de um mesmo slide */
+#atoresCarousel .carousel-item .card {
+    flex: 1; /* Faz com que os cards ocupem o mesmo espaço */
+    min-width: 120px; /* Tamanho mínimo para os cards */
+    max-width: 150px; /* Tamanho máximo para manter um bom layout */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #atoresCarousel .card img {
+    max-height: 125px; /* Limita a altura das imagens */
+    object-fit: cover; /* Mantém o aspecto correto das imagens */
+    width: 100%;
+  }
+  
+  #atoresCarousel .card-body {
+    flex-grow: 1; /* Faz com que o conteúdo do card cresça proporcionalmente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+.drama-grid {
+    display: grid;
+    gap: calc(var(--spacing-unit) * 2);
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+    justify-content: center;
+    padding: var(--spacing-unit);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.drama-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-unit);
+    border-radius: var(--card-radius);
+    background-color: #fff;
+    transition: transform var(--transition-speed) ease-in-out,
+                box-shadow var(--transition-speed) ease-in-out;
+    box-shadow: var(--card-shadow);
+}
+
+.drama-card:hover {
+    transform: scale(var(--scale-factor));
+    box-shadow: var(--card-hover-shadow);
+    cursor: pointer;
+}
+
+.drama-img {
+    width: 100%;
+    height: var(--card-height);
+    object-fit: cover;
+    border-radius: var(--card-radius);
+    aspect-ratio: 200/280;
+    background: #f0f0f0 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23999" d="M24 0v24H0V0h24zM12.594 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018zm.264-.113l-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022zm-.715.002a.023.023 0 00-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01-.184-.092z"/></svg>') no-repeat center;
+}
+
+.drama-title {
+    margin-top: var(--spacing-unit);
+    font-size: var(--title-size);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    color: #333;
+}
+
+.drama-genres {
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.drama-genres .badge {
+    font-size: 0.75rem;
+    font-weight: normal;
+    margin: 0.125rem;
+}
+
+.genre-filter {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.btn.active {
+    background-color: #0d6efd;
+    color: white !important;
+}
+
+@media (max-width: 768px) {
+    :root {
+        --card-width: 160px;
+        --card-height: 224px;
+        --title-size: 0.8rem;
+    }
+    
+    .drama-card {
+        padding: calc(var(--spacing-unit) / 2);
+    }
+    
+    .genre-filter .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .drama-card {
+        transition: none;
+    }
+    
+    .drama-card:hover {
+        transform: none;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        --card-hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    body {
+        background-color: #1a1a1a;
+        color: #fff;
+    }
+
+    .drama-card {
+        background-color: #2a2a2a;
+    }
+
+    .drama-title {
+        color: #fff;
+    }
+}
+
+
