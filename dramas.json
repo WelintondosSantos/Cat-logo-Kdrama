@@ -126,7 +126,7 @@
     "title": "Black",
     "image": "imablack",
     "genres": ["Ação", "Fantasia", "Suspense"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 { 
@@ -382,21 +382,21 @@
     "title": "Introverted Boss",
     "image": "Introverted-Boss-capa",
     "genres": ["Romance", "Suspense"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Itaewon Class",
     "image": "Itaewon-Class",
     "genres": ["Ação", "Vingança", "Suspense"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Item",
     "image": "Item",
     "genres": ["Ação", "Fantasia", "Suspense"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 { 
@@ -447,7 +447,7 @@
     "title": "Kairos",
     "image": "Kairos",
     "genres": ["Ação", "Fantasia", "Suspense"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
@@ -497,29 +497,37 @@
     "title": "Link Eat Love and Die",
     "image": "Link-Eat-Love-Die",
     "genres": ["Romance", "Fantasia", "Suspense"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Longing Heart",
     "image": "Longing-heart",
     "genres": ["Romance", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Love is for Suckers",
     "image": "Love-Is-for-Suckers",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Love with Flaws",
     "image": "Love-with-Flaws",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
+
+{
+    "title": "Love Scout",
+    "image": "Love-Scout",
+    "genres": ["Romance", "Comédia"],
+    "status": "Assistidos"
+},
+
 
 {
     "title": "Loucos um pelo o outro",
@@ -529,53 +537,61 @@
 },
 
 {
+    "title": "Love next door",
+    "image": "Love-Next-Door",
+    "genres": ["Romance", "Drama","Comédia"],
+    "status": "Assistidos"
+},
+
+{
     "title": "Lutando pelo meu caminho",
     "image": "Lutando-pelo-meu-caminho-",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
+
 
 
 {
     "title": "Marry my Husband",
     "image": "Marry-My-Husband",
     "genres": ["Romance", "Suspense", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Masters Sun",
     "image": "Masters-Sun",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Match Vip",
     "image": "match-vip",
     "genres": ["Romance", "Drama"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Melo Holic",
     "image": "Melo-Holic",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Meow the secret boy",
     "image": "Meow-the-Secret-Boy",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Military Prosecutor Doberman",
     "image": "Military-Prosecutor-Doberman",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
@@ -589,14 +605,21 @@
     "title": "Moving",
     "image": "Moving",
     "genres": ["Drama", "Ação", "Suspense"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Mr. Queen",
     "image": "Mr-Queen",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
+},
+
+{
+    "title": "My Nemesis",
+    "image": "My-Nemesis",
+    "genres": ["Comédia","Romance"],
+    "status": "Assistidos"
 },
 
 {
@@ -610,28 +633,28 @@
     "title": "My Fellow Citizens",
     "image": "My-Fellow-Citizens",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "My Perfect Stranger",
     "image": "My-Perfect-Stranger",
     "genres": ["Romance", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "My Roommate is Gumiho",
     "image": "My-Roommate-Is-a-Gumiho",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Mystic pop up bar",
     "image": "Mystic-Pop-Up-Bar",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 
@@ -639,21 +662,21 @@
     "title": "No Gain No Love",
     "image": "No-Gain-No-Love",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Oh my Vênus",
     "image": "oh-my-venus",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Oh My Ghostess",
     "image": "Oh-My-Ghostess",
     "genres": ["Romance", "Comédia","Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
@@ -667,16 +690,22 @@
     "title": "One Spring Night",
     "image": "One-Spring-Night",
     "genres": ["Romance", "Drama"],
-    "status": "Assistido"
+    "status": "Assistir em breve"
 },
 
 {
     "title": "Onne Sunny Day",
     "image": "onne-sunny-day",
     "genres": ["Romance", "Drama"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
+{
+    "title": "Os Auditores",
+    "image": "os-auditores",
+    "genres": ["Vingança", "Drama"],
+    "status": "Assistidos"
+},
 
 {
     "title": "Pandora-Beneath-the-Paradise",
@@ -689,7 +718,7 @@
     "title": "Personal Taste",
     "image": "Personal-Taste",
     "genres": ["Romance", "Drama", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
@@ -710,21 +739,21 @@
     "title": "Reborn Rich",
     "image": "Reborn-Rich",
     "genres": ["Vingança", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Revenant",
     "image": "Revenant",
     "genres": ["Fantasia", "Drama"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Revolutionary Love",
     "image": "Revolutionary-Love-",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 
@@ -732,56 +761,56 @@
     "title": "She was Pretty",
     "image": "She-Was-Pretty",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Sisyphus the Myth",
     "image": "Sisyphus-The-Myth",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "So, I married an anti fan",
     "image": "So-I-Married-an-Anti-Fan",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Sorry, But I Love You",
     "image": "sorry-i-love-you",
     "genres": ["Romance", "Drama"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Star-up, Apostando Alto",
     "image": "Start-Up-Apostando-Alto",
     "genres": ["Romance", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Strangers Again",
     "image": "Strangers-Again",
     "genres": ["Romance", "Comédia", "Drama"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Strong Woman Bong Soon",
     "image": "Strong-woman-do-bong-soon",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Secret Love",
     "image": "Secret-Love-",
     "genres": ["Romance", "Drama", "Vingança"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
@@ -796,21 +825,21 @@
     "title": "Tale the nine tailed",
     "image": "tale-of-the-Nine-Tailed",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Tale the nine tailed 1938",
     "image": "tale-of-the-Nine-Tailed-1938",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Tale the nine tailed Unfinished",
     "image": "tale-of-the-Nine-Tailed-An-Unfinished",
     "genres": ["Romance", "Comédia", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
@@ -831,7 +860,7 @@
     "title": "Terius Behind Me",
     "image": "Terius-Behind-Me",
     "genres": ["Ação", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
@@ -846,6 +875,13 @@
     "image": "The-Escape-of-the-Seven-War-for-Survival",
     "genres": ["Ação", "Vingança", "Drama"],
     "status": "Assistir em breve"
+},
+
+{
+    "title": "The Lab Potatos",
+    "image": "The-Potato-Lab",
+    "genres": ["Comédia","Romance"],
+    "status": "Assistidos"
 },
 
 {
@@ -866,14 +902,21 @@
     "title": "The Devil Judge",
     "image": "The-Devil-Judge",
     "genres": ["Ação", "Drama"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "The Fiery Priest",
     "image": "The-Fiery-Priest",
     "genres": ["Ação", "Comédia"],
-    "status": "Assistido"
+    "status": "Assistidos"
+},
+
+{
+    "title": "The Fiery Priest T2",
+    "image": "The-Fiery-Priest-T2",
+    "genres": ["Ação", "Comédia"],
+    "status": "Terminar de assistir"
 },
 
 {
@@ -884,17 +927,25 @@
 },
 
 {
+    "title": "The Trunk",
+    "image": "The-Trunk",
+    "genres": ["Romance", "Drama", "Suspense","Vingança"],
+    "status": "Assistidos"
+},
+
+
+{
     "title": "Times",
     "image": "Times",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Tomorrow",
     "image": "Tomorrow",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 { 
@@ -908,63 +959,77 @@
     "title": "Touch your heart",
     "image": "Touch-Your-Heart",
     "genres": ["Comédia", "Romance"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Train",
     "image": "Train",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "Thirty But, Seventenn",
     "image": "Thirty-But-Seventeen",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "The Worst Evil",
     "image": "The-Worst-of-Evil",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "The Spies Who Loved Me",
     "image": "The-Spies-Who-Loved-Me",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "The Smile has left your eyes",
     "image": "THE-SMILE-HAS-LEFT-YOUR-EYES",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
 {
     "title": "The Real has Come",
     "image": "The-Real-Has-Come",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
+
 {
     "title": "Trap",
     "image": "Trap",
     "genres": ["Ação", "Drama", "Fantasia"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 {
     "title": "Tudo sobre o nosso romance",
     "image": "Tudo_sobre_nosso_romance",
     "genres": ["Comédia", "Romance"],
-    "status": "Assistido"
+    "status": "Assistidos"
 },
 
+{
+    "title": "The Players T1",
+    "image": "The-Player-T1",
+    "genres": ["Ação", "Drama", "Fantasia"],
+    "status": "Assistidos"
+},
+
+{
+    "title": "The Players T2",
+    "image": "The-Player-T2",
+    "genres": ["Ação", "Drama", "Comédia","Vingança"],
+    "status": "Assistir em breve"
+},
 
 { 
     "title": "Uma Odisséia Coreana",
@@ -1006,7 +1071,7 @@
     "title": "When Camélia Blooms",
     "image": "When-the-Camellia-Blooms",
     "genres": ["Romance","Fantasia"],
-    "status": "Assistidos"
+    "status": "Assistir em breve"
 },
 
 
@@ -1040,7 +1105,7 @@
 
 { 
     "title": "Work Later, Drink now T1",
-    "image": "work-later-drink-now",
+    "image": "Work_Later,_Drink_Now_T1",
     "genres": ["Romance","Fantasia"],
     "status": "Assistidos"
 },
@@ -1049,7 +1114,7 @@
     "title": "Work Later, Drink now T2",
     "image": "Work-Later-Drink-Now-T2",
     "genres": ["Romance","Fantasia"],
-    "status": "Assistidos"
+    "status": "Assistir em breve"
 },
 { 
     "title": "Yonder",
@@ -1069,14 +1134,14 @@
     "title": "Yumis Cells T1",
     "image": "Yumis-Cells",
     "genres": ["Comédia", "Romance"],
-    "status": "Assistidos"
+    "status": "Assistir em breve"
 },
 
 { 
     "title": "Yumis Cells T2",
     "image": "Yumis-Cells-2",
     "genres": ["Comédia", "Romance"],
-    "status": "Assistidos"
+    "status": "Assistir em breve"
 }
 
 
