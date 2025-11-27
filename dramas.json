@@ -7,6 +7,12 @@
     "status": "Assistidos"
 },
 
+{ 
+    "title": "A Man no mercy",
+    "image": "a-man-no-mercy",
+    "genres": ["Drama", "Ação","Vingança"],
+    "status": "Assistidos"
+},
 
 { 
     "title": "As cronicas de Arthdal T-1",
@@ -613,6 +619,13 @@
     "image": "Mr-Queen",
     "genres": ["Romance", "Comédia", "Fantasia"],
     "status": "Assistidos"
+},
+
+{
+    "title": "Mrs. Back",
+    "image": "mrs-back",
+    "genres": ["Romance", "Comédia", "Fantasia"],
+    "status": "Assistir em breve"
 },
 
 {
