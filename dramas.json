@@ -223,6 +223,27 @@
 },
 
 { 
+    "title": "Desprazer em te conhecer",
+    "image": "desprazer-em-te-conhecer",
+    "genres": ["Romance","Comédia"],
+    "status": "Assistidos"
+},
+
+{ 
+    "title": "Dynamite Kisses",
+    "image": "dynamite-kisses",
+    "genres": ["Romance","Comédia"],
+    "status": "Assistidos"
+},
+
+{ 
+    "title": "Doctor Slumb",
+    "image": "doctor-slumb",
+    "genres": ["Romance","Comédia", "Médico"],
+    "status": "Assistidos"
+},
+
+{ 
     "title": "Doctor John",
     "image": "Doctor-John",
     "genres": ["Romance","Médico"],
@@ -493,6 +514,13 @@
 },
 
 {
+    "title": "Last Summer",
+    "image": "last-summer",
+    "genres": ["Ação", "Suspense"],
+    "status": "Assistir em breve"
+},
+
+{
     "title": "Life",
     "image": "life-2018",
     "genres": ["Ação", "Suspense"],
@@ -677,6 +705,14 @@
     "genres": ["Romance", "Comédia"],
     "status": "Assistidos"
 },
+
+{
+    "title": "Nine Puzzles",
+    "image": "Nine-Puzzles",
+    "genres": ["Suspense", "Drama", "Vingança"],
+    "status": "Assistidos"
+},
+
 
 {
     "title": "Oh my Vênus",
