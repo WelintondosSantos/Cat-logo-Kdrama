@@ -15,6 +15,13 @@
 },
 
 { 
+    "title": "Amor de Mentirinha",
+    "image": "amor-mentirinha",
+    "genres": ["Romance","Comédia"],
+    "status": "Assistidos"
+},
+
+{ 
     "title": "As cronicas de Arthdal T-1",
     "image": "Arthdal-Chronicles-Parte-1",
     "genres": ["Drama", "Romance","Fantasia"],
@@ -785,6 +792,13 @@
 },
 
 {
+    "title": "Polaris",
+    "image": "polaris",
+    "genres": ["Romance", "Drama", "Vingança"],
+    "status": "Terminar de assistir"
+},
+
+{
     "title": "Reborn Rich",
     "image": "Reborn-Rich",
     "genres": ["Vingança", "Drama", "Fantasia"],
@@ -902,6 +916,13 @@
     "title": "Taxi Driver T2",
     "image": "Taxi-Driver2",
     "genres": ["Ação", "Vingança", "Drama"],
+    "status": "Assistir em breve"
+},
+
+{
+    "title": "Talvez Amanhã",
+    "image": "talves-amanhã",
+    "genres": ["Comédia", "Romance", "Drama"],
     "status": "Assistir em breve"
 },
 
