@@ -15,6 +15,13 @@
 },
 
 { 
+    "title": "A arte da Negociação",
+    "image": "The-Art-of-Negotiation",
+    "genres": ["Drama", "Ação","Vingança"],
+    "status": "Assistidos"
+},
+
+{ 
     "title": "Amor de Mentirinha",
     "image": "amor-mentirinha",
     "genres": ["Romance","Comédia"],
@@ -156,6 +163,12 @@
     "status": "Assistir em breve"
 },
 
+{ 
+    "title": "Brain",
+    "image": "brain",
+    "genres": ["Suspense", "Romance","drama"],
+    "status": "Assistir em breve"
+},
 
 
 { 
@@ -468,6 +481,13 @@
     "status": "Assistir em breve"
 },
 
+{ 
+    "title": "I'm a ghost",
+    "image": "I-am-a-ghost",
+    "genres": ["Romance","Drama"],
+    "status": "Assistidos"
+},
+
 
 { 
     "title": "Jinxed at First",
@@ -671,6 +691,14 @@
 },
 
 {
+    "title": "My man is a cupid",
+    "image": "My-Man-Is-Cupid",
+    "genres": ["Comédia","Romance"],
+    "status": "Terminar de assistir"
+},
+
+
+{
     "title": "My Liberation Notes",
     "image": "My-Liberation-Notes",
     "genres": ["Drama"],
@@ -819,10 +847,23 @@
     "status": "Assistidos"
 },
 
+{
+    "title": "Sapatinho de vidro",
+    "image": "sapatinho-de-vidro",
+    "genres": ["Romance", "drama"],
+    "status": "Assistidos"
+},
 
 {
     "title": "She was Pretty",
     "image": "She-Was-Pretty",
+    "genres": ["Romance", "Comédia"],
+    "status": "Assistidos"
+},
+
+{
+    "title": "Seguro para Divorciados",
+    "image": "The-Divorce-Insurance",
     "genres": ["Romance", "Comédia"],
     "status": "Assistidos"
 },
@@ -883,6 +924,19 @@
     "status": "Assistir em breve"
 },
 
+{
+    "title": "Sline",
+    "image": "Sline",
+    "genres": ["Suspense", "Drama"],
+    "status": "Assistidos"
+},
+
+{
+    "title": "School Morrim",
+    "image": "Morrim-School",
+    "genres": ["Suspense", "Drama", "Fantasia"],
+    "status": "Assistidos"
+},
 
 {
     "title": "Tale the nine tailed",
@@ -964,7 +1018,7 @@
 {
     "title": "The Law Cafe",
     "image": "The-Law-Cafe",
-    "genres": [],
+    "genres": ["Drama", "Comédia", "Romance"],
     "status": "Assistir em breve"
 },
 
@@ -1102,13 +1156,6 @@
 },
 
 { 
-    "title": "Uma Odisséia Coreana",
-    "image": "Uma-Odiséia-Coreana",
-    "genres": ["Comédia", "Romance","Fantasia"],
-    "status": "Assistir em breve"
-},
-
-{ 
     "title": "U-Turn",
     "image": "U-Turn",
     "genres": ["Comédia", "Romance","Fantasia"],
@@ -1153,7 +1200,7 @@
 },
 
 { 
-    "title": "",
+    "title": "Uma Odiséia Coreana",
     "image": "Uma-Odiséia-Coreana",
     "genres": ["Comédia", "Romance","Fantasia"],
     "status": "Assistir em breve"
