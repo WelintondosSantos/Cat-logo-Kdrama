@@ -35,8 +35,8 @@
         "episodios": 1
     },
     {
-        "title": "A Negociação",
-        "image": "The-Art-of-Negotiation",
+        "title": "A Arte da Negociação",
+        "image": "The-Art-of-Negotation",
         "genres": [
             "Drama",
             "Ação",
@@ -448,7 +448,7 @@
     },
     {
         "title": "Enquanto você Dormia",
-        "image": "While-You-Were-Sleeping",
+        "image": "While-You-Were-Slleeping",
         "genres": [
             "Romance",
             "Fantasia",
@@ -627,7 +627,7 @@
     },
     {
         "title": "Its Okay Thats Love",
-        "image": "its-okay-thats-love",
+        "image": "its-ok-thats-love",
         "genres": [
             "Romance",
             "Drama",
@@ -706,7 +706,7 @@
         "status": "Assistidos"
     },
     {
-        "title": "Kill me or heal me",
+        "title": "Kill me, Heal me",
         "image": "Kill-me-completo",
         "genres": [
             "Comédia",
@@ -857,7 +857,7 @@
     },
     {
         "title": "Masters Sun",
-        "image": "Masters-Sun",
+        "image": "Master-Sun",
         "genres": [
             "Romance",
             "Comédia",
@@ -1155,7 +1155,7 @@
     },
     {
         "title": "Revolutionary Love",
-        "image": "Revolutionary-Love-",
+        "image": "Revolutionary-Love",
         "genres": [
             "Romance",
             "Comédia"
@@ -1164,7 +1164,7 @@
     },
     {
         "title": "Sapatinho de vidro",
-        "image": "sapatinho-de-vidro",
+        "image": "sapatinho-vidro",
         "genres": [
             "Romance",
             "drama"
@@ -1248,7 +1248,7 @@
     },
     {
         "title": "Secret Love",
-        "image": "Secret-Love-",
+        "image": "Secret-Love",
         "genres": [
             "Romance",
             "Drama",
@@ -1316,7 +1316,7 @@
     },
     {
         "title": "Taxi Driver T1",
-        "image": "Taxi-Driver",
+        "image": "Taxi-Driver-T1",
         "genres": [
             "Ação",
             "Vingança",
@@ -1326,7 +1326,7 @@
     },
     {
         "title": "Taxi Driver T2",
-        "image": "Taxi-Driver2",
+        "image": "Taxi-Driver-T2",
         "genres": [
             "Ação",
             "Vingança",
@@ -1355,8 +1355,8 @@
     },
     {
         "title": "The man Living",
-        "image": "The_man_living",
-        "genres": [],
+        "image": "The-man-living",
+        "genres": ["Drama"],
         "status": "Assistir em breve"
     },
     {
@@ -1409,7 +1409,7 @@
     },
     {
         "title": "The Fiery Priest",
-        "image": "The-Fiery-Priest",
+        "image": "The-Fiery-Priest-T1",
         "genres": [
             "Ação",
             "Comédia"
@@ -1556,7 +1556,7 @@
     },
     {
         "title": "Tudo sobre o nosso romance",
-        "image": "Tudo_sobre_nosso_romance",
+        "image": "Tudo-sobre-nosso-romance",
         "genres": [
             "Comédia",
             "Romance"
@@ -1596,7 +1596,7 @@
     },
     {
         "title": "Vincenzo",
-        "image": "Vincenzo-Drama",
+        "image": "Vicenzo-Drama",
         "genres": [
             "Suspense",
             "Ação",
@@ -1672,7 +1672,7 @@
     },
     {
         "title": "Work Later, Drink now T1",
-        "image": "Work_Later,_Drink_Now_T1",
+        "image": "Work-Later-Drink-Now-T1",
         "genres": [
             "Romance",
             "Fantasia"
