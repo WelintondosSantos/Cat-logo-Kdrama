@@ -9,6 +9,29 @@ function getDramaImage(imageName) {
   return `${CONFIG.basePath}${imageName}${CONFIG.imageExtension}`;
 }
 
+// Gerenciador de Status do Usuário (LocalStorage)
+class UserStatusManager {
+  static getStorage() {
+    return JSON.parse(localStorage.getItem('userDramaStatus') || '{}');
+  }
+
+  static getStatus(title) {
+    const storage = this.getStorage();
+    return storage[title] || null;
+  }
+
+  static setStatus(title, status) {
+    const storage = this.getStorage();
+    if (status) {
+      storage[title] = status;
+    } else {
+      delete storage[title]; // Remove status if empty
+    }
+    localStorage.setItem('userDramaStatus', JSON.stringify(storage));
+  }
+}
+
+
 class DramaManager {
   constructor(containerId, dramas) {
     this.container = document.getElementById(containerId);
@@ -24,15 +47,12 @@ class DramaManager {
     this.init();
   }
 
-  // Retorna um array com os filtros disponíveis (gêneros + status)
+  // Retorna um array com os filtros disponíveis (apenas gêneros)
   getAllFilters() {
-    // Extrai os gêneros dos dramas
     // Extrai os gêneros dos dramas e normaliza (Primeira letra maiúscula)
     const genres = new Set(this.dramas.flatMap(drama =>
       drama.genres.map(g => g.charAt(0).toUpperCase() + g.slice(1).toLowerCase())
     ));
-    // Adiciona as opções de status
-    ['Assistidos', 'Assistindo', 'Assistir em breve', 'Terminar de assistir',].forEach(status => genres.add(status));
 
     // Convert Set to Array and Sort
     const sortedGenres = [...genres].sort();
@@ -90,6 +110,13 @@ class DramaManager {
 
     document.getElementById('searchForm').addEventListener('submit', searchHandler);
     this.searchInput.addEventListener('input', searchHandler);
+
+    // Setup Status Filter (Navbar)
+    this.statusFilter = document.getElementById('statusFilter');
+    this.statusFilter.addEventListener('change', () => {
+      this.currentPage = 1;
+      this.updateFilters();
+    });
   }
 
   // Helper to check if a drama is favorite
@@ -118,21 +145,32 @@ class DramaManager {
     }
   }
 
-  // Filtra os dramas de acordo com o filtro (gênero ou status) e a busca
+  // Filtra os dramas de acordo com o filtro (gênero), status do usuário e a busca
   filterDramas() {
+    const selectedStatus = this.statusFilter ? this.statusFilter.value : 'Todos';
+
     return this.dramas.filter(drama => {
-      let matchesFilter;
+      // 1. Filter by Genre / Favorites
+      let matchesGenre;
       if (this.currentFilter === 'Todos') {
-        matchesFilter = true;
+        matchesGenre = true;
       } else if (this.currentFilter === 'Meus Favoritos') {
-        matchesFilter = this.isFavorite(drama.title);
-      } else if (['Assistidos', 'Assistindo', 'Assistir em breve', 'Terminar de assistir'].includes(this.currentFilter)) {
-        matchesFilter = drama.status === this.currentFilter;
+        matchesGenre = this.isFavorite(drama.title);
       } else {
-        matchesFilter = drama.genres.includes(this.currentFilter);
+        matchesGenre = drama.genres.includes(this.currentFilter);
       }
+
+      // 2. Filter by Search
       const matchesSearch = drama.title.toLowerCase().includes(this.searchTerm);
-      return matchesFilter && matchesSearch;
+
+      // 3. Filter by User Status
+      let matchesStatus = true;
+      if (selectedStatus !== 'Todos') {
+        const userStatus = UserStatusManager.getStatus(drama.title);
+        matchesStatus = userStatus === selectedStatus;
+      }
+
+      return matchesGenre && matchesSearch && matchesStatus;
     });
   }
 
@@ -148,6 +186,7 @@ class DramaManager {
     card.className = 'drama-card';
 
     const isFav = this.isFavorite(drama.title);
+    const userStatus = UserStatusManager.getStatus(drama.title);
 
     const img = new Image();
     img.src = getDramaImage(drama.image);
@@ -161,9 +200,47 @@ class DramaManager {
     favBtn.className = `favorite-btn ${isFav ? 'active' : ''}`;
     favBtn.innerHTML = isFav ? '<i class="bi bi-heart-fill"></i>' : '<i class="bi bi-heart"></i>';
     favBtn.onclick = (e) => {
-      e.stopPropagation(); // Prevent triggering card click if we add one later
+      e.stopPropagation(); // Prevent triggering card click
       this.toggleFavorite(drama.title, favBtn);
     };
+
+    // Status Badge/Dropdown
+    const statusContainer = document.createElement('div');
+    statusContainer.className = 'status-wrapper';
+    statusContainer.innerHTML = `
+      <div class="dropdown">
+        <button class="btn btn-sm btn-light dropdown-toggle status-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+          ${userStatus || 'Status'}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#" data-status="Assistidos">Assistidos</a></li>
+          <li><a class="dropdown-item" href="#" data-status="Assistindo">Assistindo</a></li>
+          <li><a class="dropdown-item" href="#" data-status="Assistir em breve">Assistir em breve</a></li>
+          <li><a class="dropdown-item" href="#" data-status="Terminar de assistir">Terminar de assistir</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="#" data-status="">Remover Status</a></li>
+        </ul>
+      </div>
+    `;
+
+    // Handle Status Change
+    statusContainer.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const newStatus = e.target.dataset.status;
+        UserStatusManager.setStatus(drama.title, newStatus);
+
+        // Update Button Text
+        const btn = statusContainer.querySelector('.status-btn');
+        btn.textContent = newStatus || 'Status';
+
+        // Refresh filter if we are currently filtering by status
+        if (this.statusFilter && this.statusFilter.value !== 'Todos') {
+          this.updateFilters();
+        }
+      });
+    });
 
     card.innerHTML = `
         <div class="d-flex flex-column align-items-center">
@@ -176,6 +253,7 @@ class DramaManager {
 
     // Append Elements
     card.appendChild(favBtn);
+    card.appendChild(statusContainer); // Add status dropdown
     card.querySelector('div').prepend(img);
 
     // Open Details Modal on click
@@ -199,16 +277,21 @@ class DramaManager {
       `<span class="badge bg-secondary">${g}</span>`
     ).join('');
 
-    // Status Badge
-    const statusBadge = document.createElement('span');
-    statusBadge.className = 'badge bg-primary';
-    statusBadge.textContent = drama.status;
-    tagsContainer.appendChild(statusBadge);
+    // Status Badge (User Status) moved to main details area, not tags
+    // const userStatus = UserStatusManager.getStatus(drama.title);
+    // const statusBadge = document.createElement('span');
+    // statusBadge.className = 'badge bg-primary';
+    // statusBadge.textContent = userStatus || 'Sem Status';
+    // tagsContainer.appendChild(statusBadge);
 
     // Details with Fallback
     document.getElementById('modalSynopsis').textContent = drama.sinopse || "Sinopse não disponível para este título.";
     document.getElementById('modalYear').textContent = drama.ano || "-";
     document.getElementById('modalEpisodes').textContent = drama.episodios ? `${drama.episodios} eps` : "-";
+
+    // User Status Dropdown in Modal
+    this.renderModalStatusDropdown(drama);
+
 
     // Cast
     const castContainer = document.getElementById('modalCast');
@@ -223,6 +306,45 @@ class DramaManager {
     // Show Modal
     const modal = new bootstrap.Modal(document.getElementById('dramaModal'));
     modal.show();
+  }
+
+  renderModalStatusDropdown(drama) {
+    const container = document.getElementById('modalStatusContainer');
+    if (!container) return;
+
+    const userStatus = UserStatusManager.getStatus(drama.title);
+
+    container.innerHTML = `
+      <div class="dropdown mt-3">
+        <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          Status: <strong>${userStatus || 'Definir Status'}</strong>
+        </button>
+        <ul class="dropdown-menu w-100 text-center">
+          <li><a class="dropdown-item" href="#" data-status="Assistidos">✔️ Assistidos</a></li>
+          <li><a class="dropdown-item" href="#" data-status="Assistindo">▶️ Assistindo</a></li>
+          <li><a class="dropdown-item" href="#" data-status="Assistir em breve">📅 Assistir em breve</a></li>
+          <li><a class="dropdown-item" href="#" data-status="Terminar de assistir">⏸️ Terminar de assistir</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="#" data-status="">🗑️ Remover Status</a></li>
+        </ul>
+      </div>
+    `;
+
+    container.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const newStatus = e.target.dataset.status;
+        UserStatusManager.setStatus(drama.title, newStatus);
+
+        // Re-render dropdown to show new status
+        this.renderModalStatusDropdown(drama);
+
+        // Refresh grid if filter is active
+        if (this.statusFilter && this.statusFilter.value !== 'Todos') {
+          this.updateFilters();
+        }
+      });
+    });
   }
 
   // Renderiza os controles de paginação
@@ -325,11 +447,23 @@ class ActorsManager {
 
   async init() {
     try {
-      const response = await fetch('atores.json');
-      const actors = await response.json();
-      this.renderActors(actors);
+      // SUBSTITUIÇÃO: Fetch do Supabase em vez de arquivo JSON
+      // const response = await fetch('atores.json');
+      // const actors = await response.json();
+
+      const { data: actors, error } = await window.supabaseClient
+        .from('atores')
+        .select('*');
+
+      if (error) throw error;
+
+      if (actors) {
+        this.renderActors(actors);
+      }
     } catch (error) {
-      console.error("Erro ao carregar atores:", error);
+      console.error("Erro ao carregar atores do Supabase:", error);
+      // Fallback opcional ou mensagem de erro na UI
+      this.carouselInner.innerHTML = '<div class="text-center p-4">Erro ao carregar atores. Verifique a conexão.</div>';
     }
   }
 
@@ -391,12 +525,33 @@ class ThemeManager {
   }
 }
 
-// Carrega os dados do arquivo JSON e inicializa o DramaManager
-fetch('dramas.json')
-  .then(response => response.json())
-  .then(data => {
-    new DramaManager('dramaGrid', data);
-    new ActorsManager('#atoresCarousel');
-    new ThemeManager();
-  })
-  .catch(error => console.error("Erro ao carregar os dramas:", error));
+// Carrega os dados do Supabase e inicializa o DramaManager
+async function initApp() {
+  try {
+    // SUBSTITUIÇÃO: Fetch do Supabase em vez de 'dramas.json'
+    // fetch('dramas.json')...
+
+    const { data: dramas, error } = await window.supabaseClient
+      .from('dramas')
+      .select('*');
+
+    if (error) throw error;
+
+    if (dramas) {
+      new DramaManager('dramaGrid', dramas);
+      new ActorsManager('#atoresCarousel');
+      new ThemeManager();
+    }
+  } catch (error) {
+    console.error("Erro ao carregar os dramas do Supabase:", error);
+    document.getElementById('dramaGrid').innerHTML = `
+      <div class="alert alert-danger" role="alert">
+        Erro ao carregar dados. Verifique suas credenciais do Supabase em supa-client.js
+        <br>Erro: ${error.message}
+      </div>
+    `;
+  }
+}
+
+// Inicia a aplicação
+initApp();

@@ -11,6 +11,7 @@
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" as="style">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="status_style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
@@ -31,6 +32,13 @@
           <button class="btn btn-outline-secondary me-2" type="button" id="themeToggle" aria-label="Alternar tema">
             🌙
           </button>
+          <select class="form-select me-2" id="statusFilter" aria-label="Filtrar por Status" style="max-width: 150px;">
+            <option value="Todos" selected>Todos Status</option>
+            <option value="Assistidos">Assistidos</option>
+            <option value="Assistindo">Assistindo</option>
+            <option value="Assistir em breve">Assistir em breve</option>
+            <option value="Terminar de assistir">Terminar de assistir</option>
+          </select>
           <button class="btn btn-outline-success" type="submit">Pesquisar</button>
         </form>
       </div>
@@ -89,6 +97,7 @@
               <div class="modal-poster-wrapper">
                 <img src="" alt="Drama Poster" id="modalPoster" class="img-fluid rounded shadow-lg w-100">
               </div>
+              <div id="modalStatusContainer"></div>
             </div>
             <!-- Details Column -->
             <div class="col-md-7 col-lg-8">
@@ -129,6 +138,8 @@
   </div>
 
   <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supa-client.js"></script>
   <script defer src="scripts.js"></script>
 </body>
 
