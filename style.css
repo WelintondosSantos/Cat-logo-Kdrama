@@ -8,6 +8,7 @@
     --scale-factor: 1.05;
     --spacing-unit: 8px;
     --title-size: 0.9rem;
+    --primary-color: #0d6efd;
 }
 
 .carousel .card {

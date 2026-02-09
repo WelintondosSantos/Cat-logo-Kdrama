@@ -303,6 +303,16 @@
         "status": "Assistidos"
     },
     {
+        "title": "Connection",
+        "image": "Connection",
+        "genres": [
+            "Drama",
+            "Suspense",
+            "Crime"
+        ],
+        "status": "Assistidos"
+    },
+    {
         "title": "Detective Zombie",
         "image": "Zombie-Detective",
         "genres": [

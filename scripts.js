@@ -9,25 +9,117 @@ function getDramaImage(imageName) {
   return `${CONFIG.basePath}${imageName}${CONFIG.imageExtension}`;
 }
 
-// Gerenciador de Status do Usuário (LocalStorage)
-class UserStatusManager {
-  static getStorage() {
-    return JSON.parse(localStorage.getItem('userDramaStatus') || '{}');
-  }
+// Gerenciador de Dados do Usuário (Cloud + LocalStorage)
+class UserDataManager {
+  static async loadData() {
+    this.localStatus = JSON.parse(localStorage.getItem('userDramaStatus') || '{}');
+    this.localFavorites = JSON.parse(localStorage.getItem('favoriteDramas') || '[]');
+    this.cloudData = {}; // Map: dramaId -> { status, is_favorite }
 
-  static getStatus(title) {
-    const storage = this.getStorage();
-    return storage[title] || null;
-  }
-
-  static setStatus(title, status) {
-    const storage = this.getStorage();
-    if (status) {
-      storage[title] = status;
-    } else {
-      delete storage[title]; // Remove status if empty
+    if (AuthManager && AuthManager.user) {
+      await this.syncWithCloud();
     }
-    localStorage.setItem('userDramaStatus', JSON.stringify(storage));
+  }
+
+  static async syncWithCloud() {
+    // Fetch all user data from Supabase
+    const { data, error } = await window.supabaseClient
+      .from('user_library')
+      .select('drama_id, status, is_favorite');
+
+    if (error) {
+      console.error('Error fetching user library:', error);
+      return;
+    }
+
+    this.cloudData = {};
+    if (data) {
+      data.forEach(item => {
+        this.cloudData[item.drama_id] = {
+          status: item.status,
+          is_favorite: item.is_favorite
+        };
+      });
+    }
+  }
+
+  static getStatus(drama) {
+    if (AuthManager && AuthManager.user) {
+      const item = this.cloudData[drama.id];
+      return item ? item.status : null;
+    }
+    return this.localStatus[drama.title] || null;
+  }
+
+  static isFavorite(drama) {
+    if (AuthManager && AuthManager.user) {
+      const item = this.cloudData[drama.id];
+      return item ? item.is_favorite : false;
+    }
+    return this.localFavorites.includes(drama.title);
+  }
+
+  static async setStatus(drama, status) {
+    if (AuthManager && AuthManager.user) {
+      // Cloud Save
+      // Optimistic update
+      if (!this.cloudData[drama.id]) this.cloudData[drama.id] = {};
+      this.cloudData[drama.id].status = status;
+
+      const { error } = await window.supabaseClient
+        .from('user_library')
+        .upsert({
+          user_id: AuthManager.user.id,
+          drama_id: drama.id,
+          status: status
+        }, { onConflict: 'user_id, drama_id' }); // Upsert handles insert/update
+
+      if (error) console.error("Cloud save error:", error);
+
+    } else {
+      // Local Save
+      if (status) {
+        this.localStatus[drama.title] = status;
+      } else {
+        delete this.localStatus[drama.title];
+      }
+      localStorage.setItem('userDramaStatus', JSON.stringify(this.localStatus));
+    }
+  }
+
+  static async toggleFavorite(drama) {
+    if (AuthManager && AuthManager.user) {
+      // Cloud Toggle
+      const currentFav = this.isFavorite(drama);
+      const newFav = !currentFav;
+
+      // Optimistic Update
+      if (!this.cloudData[drama.id]) this.cloudData[drama.id] = {};
+      this.cloudData[drama.id].is_favorite = newFav;
+
+      const { error } = await window.supabaseClient
+        .from('user_library')
+        .upsert({
+          user_id: AuthManager.user.id,
+          drama_id: drama.id,
+          is_favorite: newFav
+        }, { onConflict: 'user_id, drama_id' });
+
+      if (error) console.error("Cloud fav error:", error);
+      return newFav;
+
+    } else {
+      // Local Toggle
+      if (this.localFavorites.includes(drama.title)) {
+        this.localFavorites = this.localFavorites.filter(t => t !== drama.title);
+        localStorage.setItem('favoriteDramas', JSON.stringify(this.localFavorites));
+        return false;
+      } else {
+        this.localFavorites.push(drama.title);
+        localStorage.setItem('favoriteDramas', JSON.stringify(this.localFavorites));
+        return true;
+      }
+    }
   }
 }
 
@@ -110,34 +202,30 @@ class DramaManager {
 
     document.getElementById('searchForm').addEventListener('submit', searchHandler);
     this.searchInput.addEventListener('input', searchHandler);
-
-    // Setup Status Filter (Navbar)
-    this.statusFilter = document.getElementById('statusFilter');
-    this.statusFilter.addEventListener('change', () => {
-      this.currentPage = 1;
-      this.updateFilters();
-    });
   }
 
   // Helper to check if a drama is favorite
-  isFavorite(title) {
-    const favorites = JSON.parse(localStorage.getItem('favoriteDramas') || '[]');
-    return favorites.includes(title);
+  isFavorite(dramaTitle) {
+    // Find drama object by title to pass to UserDataManager (since it needs ID for cloud)
+    const drama = this.dramas.find(d => d.title === dramaTitle);
+    return drama ? UserDataManager.isFavorite(drama) : false;
   }
 
   // Toggle favorite status
-  toggleFavorite(title, btn) {
-    let favorites = JSON.parse(localStorage.getItem('favoriteDramas') || '[]');
-    if (favorites.includes(title)) {
-      favorites = favorites.filter(t => t !== title);
-      btn.classList.remove('active');
-      btn.innerHTML = '<i class="bi bi-heart"></i>';
-    } else {
-      favorites.push(title);
+  async toggleFavorite(dramaTitle, btn) { // Made async
+    const drama = this.dramas.find(d => d.title === dramaTitle);
+    if (!drama) return;
+
+    const isNowFav = await UserDataManager.toggleFavorite(drama);
+
+    // Update UI
+    if (isNowFav) {
       btn.classList.add('active');
       btn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+    } else {
+      btn.classList.remove('active');
+      btn.innerHTML = '<i class="bi bi-heart"></i>';
     }
-    localStorage.setItem('favoriteDramas', JSON.stringify(favorites));
 
     // If currently viewing favorites, refresh the list to remove un-favorited item
     if (this.currentFilter === 'Meus Favoritos') {
@@ -147,15 +235,13 @@ class DramaManager {
 
   // Filtra os dramas de acordo com o filtro (gênero), status do usuário e a busca
   filterDramas() {
-    const selectedStatus = this.statusFilter ? this.statusFilter.value : 'Todos';
-
     return this.dramas.filter(drama => {
       // 1. Filter by Genre / Favorites
       let matchesGenre;
       if (this.currentFilter === 'Todos') {
         matchesGenre = true;
       } else if (this.currentFilter === 'Meus Favoritos') {
-        matchesGenre = this.isFavorite(drama.title);
+        matchesGenre = UserDataManager.isFavorite(drama);
       } else {
         matchesGenre = drama.genres.includes(this.currentFilter);
       }
@@ -163,14 +249,7 @@ class DramaManager {
       // 2. Filter by Search
       const matchesSearch = drama.title.toLowerCase().includes(this.searchTerm);
 
-      // 3. Filter by User Status
-      let matchesStatus = true;
-      if (selectedStatus !== 'Todos') {
-        const userStatus = UserStatusManager.getStatus(drama.title);
-        matchesStatus = userStatus === selectedStatus;
-      }
-
-      return matchesGenre && matchesSearch && matchesStatus;
+      return matchesGenre && matchesSearch;
     });
   }
 
@@ -186,7 +265,9 @@ class DramaManager {
     card.className = 'drama-card';
 
     const isFav = this.isFavorite(drama.title);
-    const userStatus = UserStatusManager.getStatus(drama.title);
+    // NOTE: getStatus is now async-compatible internally, but here strictly returns sync value from loaded cache
+    // since UI render is sync.
+    const userStatus = UserDataManager.getStatus(drama);
 
     const img = new Image();
     img.src = getDramaImage(drama.image);
@@ -225,20 +306,15 @@ class DramaManager {
 
     // Handle Status Change
     statusContainer.querySelectorAll('.dropdown-item').forEach(item => {
-      item.addEventListener('click', (e) => {
+      item.addEventListener('click', async (e) => { // Async handler
         e.preventDefault();
         e.stopPropagation();
         const newStatus = e.target.dataset.status;
-        UserStatusManager.setStatus(drama.title, newStatus);
+        await UserDataManager.setStatus(drama, newStatus);
 
         // Update Button Text
         const btn = statusContainer.querySelector('.status-btn');
         btn.textContent = newStatus || 'Status';
-
-        // Refresh filter if we are currently filtering by status
-        if (this.statusFilter && this.statusFilter.value !== 'Todos') {
-          this.updateFilters();
-        }
       });
     });
 
@@ -312,7 +388,7 @@ class DramaManager {
     const container = document.getElementById('modalStatusContainer');
     if (!container) return;
 
-    const userStatus = UserStatusManager.getStatus(drama.title);
+    const userStatus = UserDataManager.getStatus(drama);
 
     container.innerHTML = `
       <div class="dropdown mt-3">
@@ -331,18 +407,13 @@ class DramaManager {
     `;
 
     container.querySelectorAll('.dropdown-item').forEach(item => {
-      item.addEventListener('click', (e) => {
+      item.addEventListener('click', async (e) => {
         e.preventDefault();
         const newStatus = e.target.dataset.status;
-        UserStatusManager.setStatus(drama.title, newStatus);
+        await UserDataManager.setStatus(drama, newStatus);
 
         // Re-render dropdown to show new status
         this.renderModalStatusDropdown(drama);
-
-        // Refresh grid if filter is active
-        if (this.statusFilter && this.statusFilter.value !== 'Todos') {
-          this.updateFilters();
-        }
       });
     });
   }
@@ -538,9 +609,19 @@ async function initApp() {
     if (error) throw error;
 
     if (dramas) {
-      new DramaManager('dramaGrid', dramas);
-      new ActorsManager('#atoresCarousel');
       new ThemeManager();
+      // Load user data first!
+      await UserDataManager.loadData();
+
+      const dramaManager = new DramaManager('dramaGrid', dramas);
+      new ActorsManager('#atoresCarousel');
+
+      // Listen for Auth Changes to reload data
+      document.addEventListener('auth:stateChanged', async () => {
+        await UserDataManager.loadData();
+        dramaManager.currentPage = 1;
+        dramaManager.updateFilters();
+      });
     }
   } catch (error) {
     console.error("Erro ao carregar os dramas do Supabase:", error);
