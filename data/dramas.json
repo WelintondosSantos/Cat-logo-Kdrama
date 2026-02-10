@@ -197,7 +197,7 @@
         "status": "Terminar de assistir"
     },
     {
-        "title": " Bora True the Love ",
+        "title": "Bo-ra!Verdade sobre o amor",
         "image": "Bora-Deborah-True-to-Love",
         "genres": [
             "Comédia",
@@ -1366,7 +1366,9 @@
     {
         "title": "The man Living",
         "image": "The-man-living",
-        "genres": ["Drama"],
+        "genres": [
+            "Drama"
+        ],
         "status": "Assistir em breve"
     },
     {
@@ -1735,5 +1737,89 @@
             "Romance"
         ],
         "status": "Assistir em breve"
+    },
+    {
+        "title": "Rainha dos Golpes",
+        "image": "rainha-golpe",
+        "genres": [
+            "Comédia",
+            "Vingança",
+            "Ação",
+            "Crime"
+        ],
+        "status": "Assistidos"
+    },
+    {
+        "title": "Miss Hong, A Infiltrada",
+        "image": "disfarçada-miss-hong",
+        "genres": [
+            "Comédia",
+            "Vingança",
+            "Crime",
+            "Suspense"
+        ],
+        "status": "Terminar de assistir"
+    },
+    {
+        "title": "Febre de Primavera",
+        "image": "YFebre-Primavera",
+        "genres": [
+            "Comédia",
+            "Romance"
+            
+        ],
+        "status": "Terminar de assistir"
+    },
+    {
+        "title": "Made in Korea",
+        "image": "made-korea",
+        "genres": [
+            "Ação",
+            "Crime",
+            "Suspense"
+        ],
+        "status": "Terminar de assistir"
+    },
+    {
+        "title": "Me derretendo por Você",
+        "image": "me-derretendo-por-voce",
+        "genres": [
+            "Comédia",
+            "Romance",
+            "Fantasia"
+        ],
+        "status": "Terminar de assistir"
+    },
+    {
+        "title": "Mrs Icognito",
+        "image": "mrs-icognito",
+        "genres": [
+            "Comédia",
+            "Romance",
+            "Crime",
+            "Vingança"
+        ],
+        "status": "Terminar de assistir"
+    },
+    {
+        "title": "My love from the star",
+        "image": "My-Love-Stars",
+        "genres": [
+            "Comédia",
+            "Romance",
+            "Fantasia",
+            "Drama"
+        ],
+        "status": "Assistir em breve"
+    },
+    {
+        "title": "Nosso Positivo",
+        "image": "nosso-positivo",
+        "genres": [
+            "Comédia",
+            "Romance",
+            "Drama"
+        ],
+        "status": "Terminar de assistir"
     }
 ]

@@ -1,0 +1,42 @@
+[
+    {
+        "name": "Gong Yoo",
+        "image": "assets/img/actors/images-1.webp"
+    },
+    {
+        "name": "Kim Soo-Hyun",
+        "image": "assets/img/actors/images-2.webp"
+    },
+    {
+        "name": "Song Joong-Ki",
+        "image": "assets/img/actors/images-3.webp"
+    },
+    {
+        "name": "Lee Min-Ho",
+        "image": "assets/img/actors/image-4.webp"
+    },
+    {
+        "name": "Lee Dong Wook",
+        "image": "assets/img/actors/image-5.webp"
+    },
+    {
+        "name": "Park Seo-Joon",
+        "image": "assets/img/actors/image-6.webp"
+    },
+    {
+        "name": "Park Shin Hye",
+        "image": "assets/img/actors/1.webp"
+    },
+    {
+        "name": "Park Min Young",
+        "image": "assets/img/actors/2.webp"
+    },
+    {
+        "name": "Shin Min-a",
+        "image": "assets/img/actors/3.webp"
+    },
+    {
+        "name": "Kim Go-eun",
+        "image": "assets/img/actors/4.webp"
+    }
+]

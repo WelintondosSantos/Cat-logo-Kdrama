@@ -1,7 +1,7 @@
 const CONFIG = {
-  basePath: 'img/',
+  basePath: 'assets/img/',
   imageExtension: '.webp',
-  defaultImage: 'src/img/placeholder.jpg'
+  defaultImage: 'assets/img/placeholder.jpg'
 };
 
 // Função auxiliar para gerar o caminho completo da imagem
@@ -553,14 +553,20 @@ class ActorsManager {
       flexContainer.className = 'd-flex flex-wrap justify-content-center align-items-stretch';
 
       chunk.forEach(actor => {
+        // Normalize image path to handle legacy "./atores/" paths from database
+        let imagePath = actor.image;
+        if (imagePath.includes('./atores/') || imagePath.startsWith('atores/')) {
+          imagePath = imagePath.replace(/^(\.\/)?atores\//, 'assets/img/actors/');
+        }
+
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <img src="${actor.image}" class="card-img-top" alt="${actor.name}" loading="lazy">
-          <div class="card-body">
-            <h5 class="card-title text-center">${actor.name}</h5>
-          </div>
-        `;
+            <img src="${imagePath}" class="card-img-top" alt="${actor.name}" loading="lazy">
+            <div class="card-body">
+              <h5 class="card-title text-center">${actor.name}</h5>
+            </div>
+          `;
         flexContainer.appendChild(card);
       });
 
@@ -604,7 +610,8 @@ async function initApp() {
 
     const { data: dramas, error } = await window.supabaseClient
       .from('dramas')
-      .select('*');
+      .select('*')
+      .order('title', { ascending: true });
 
     if (error) throw error;
 
