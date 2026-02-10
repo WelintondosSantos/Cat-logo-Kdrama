@@ -47,6 +47,10 @@
               <li>
                 <hr class="dropdown-divider">
               </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="profile.html">Meu Perfil</a></li>
               <li><button class="dropdown-item text-danger" id="logoutBtn">Sair</button></li>
             </ul>
           </div>
@@ -135,6 +139,43 @@
                 <h6 class="text-uppercase text-secondary fw-bold small mb-2">Elenco Principal</h6>
                 <div id="modalCast" class="d-flex flex-wrap gap-2">
                   <!-- Cast pills -->
+                </div>
+              </div>
+
+              <!-- Reviews Section -->
+              <div class="mt-4 pt-3 border-top">
+                <h6 class="text-uppercase text-secondary fw-bold small mb-2">Avaliações e Comentários</h6>
+
+                <div id="userReviewForm" class="mb-3 d-none">
+                  <div class="card bg-light border-0">
+                    <div class="card-body">
+                      <h6 class="card-title h6 mb-2">Sua Avaliação</h6>
+                      <form id="reviewForm">
+                        <div class="mb-2 rating-stars">
+                          <div class="d-flex gap-2">
+                            <input type="radio" class="btn-check" name="rating" id="star1" value="1"><label
+                              class="btn btn-outline-warning btn-sm" for="star1">1★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star2" value="2"><label
+                              class="btn btn-outline-warning btn-sm" for="star2">2★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star3" value="3"><label
+                              class="btn btn-outline-warning btn-sm" for="star3">3★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star4" value="4"><label
+                              class="btn btn-outline-warning btn-sm" for="star4">4★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star5" value="5"><label
+                              class="btn btn-outline-warning btn-sm" for="star5">5★</label>
+                          </div>
+                        </div>
+                        <textarea class="form-control mb-2" id="reviewComment" rows="2"
+                          placeholder="Escreva seu comentário..." required></textarea>
+                        <button type="submit" class="btn btn-sm btn-primary">Enviar</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="reviewsList" class="vstack gap-3" style="max-height: 300px; overflow-y: auto;">
+                  <!-- Reviews injected here -->
+                  <p class="text-muted small">Nenhuma avaliação ainda.</p>
                 </div>
               </div>
             </div>

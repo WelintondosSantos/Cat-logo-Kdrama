@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Seu perfil e lista de dramas favoritos no K-Drama Cine.">
+  <title>Meu Perfil - K-Drama Cine</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/status_style.css">
+</head>
+
+<body id="profile-page">
+  <!-- Navbar (Reused) -->
+  <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">K-Drama Cine</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Início</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center ms-auto" id="authContainer">
+          <!-- Auth managed by auth.js -->
+          <button class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#authModal"
+            id="loginBtn">Entrar</button>
+          <div class="dropdown ms-2 d-none" id="userMenu">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" id="userMenuBtn">
+              Conta
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text text-muted" id="userEmail">email@user.com</span></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item active" href="profile.html">Meu Perfil</a></li>
+              <li><button class="dropdown-item text-danger" id="logoutBtn">Sair</button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container py-4">
+    <h2 class="mb-4">Minha Biblioteca</h2>
+
+    <!-- Favorites Section -->
+    <section class="mb-5">
+      <h3 class="mb-3 text-danger"><i class="bi bi-heart-fill me-2"></i>Meus Favoritos</h3>
+      <div class="drama-grid" id="favoritesGrid">
+        <!-- Cards Injected Here -->
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+      </div>
+    </section>
+
+    <!-- Watching -->
+    <section class="mb-5">
+      <h3 class="mb-3 text-primary"><i class="bi bi-play-circle-fill me-2"></i>Assistindo</h3>
+      <div class="drama-grid" id="watchingGrid">
+        <div class="spinner-border text-secondary" role="status"></div>
+      </div>
+    </section>
+
+    <!-- Plan to Watch -->
+    <section class="mb-5">
+      <h3 class="mb-3 text-info"><i class="bi bi-calendar-event me-2"></i>Assistir em breve</h3>
+      <div class="drama-grid" id="planGrid"></div>
+    </section>
+
+    <!-- Completed -->
+    <section class="mb-5">
+      <h3 class="mb-3 text-success"><i class="bi bi-check-circle-fill me-2"></i>Assistidos</h3>
+      <div class="drama-grid" id="completedGrid"></div>
+    </section>
+
+    <!-- Dropped/Other -->
+    <section class="mb-5">
+      <h3 class="mb-3 text-secondary"><i class="bi bi-pause-circle me-2"></i>Pausados / Outros</h3>
+      <div class="drama-grid" id="droppedGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-dark py-3 mt-5">
+    <div class="container text-center text-white">
+      <p>&copy; 2024 K-Drama Cine.</p>
+    </div>
+  </footer>
+
+  <!-- Reusing Modals from Index by including them or simple duplicating structure if we want isolation. 
+       For "Details Modal", scripts.js expects it to exist. 
+       Let's verify if `DramaManager` needs the modal HTML to be present. 
+       Yes, `openDetailsModal` looks for `dramaModal`.
+  -->
+
+  <!-- Drama Details Modal (Copy from index.html) -->
+  <div class="modal fade" id="dramaModal" tabindex="-1" aria-labelledby="dramaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fs-4 fw-bold" id="dramaModalLabel">Drama Title</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-md-5 col-lg-4">
+              <div class="modal-poster-wrapper">
+                <img src="" alt="Drama Poster" id="modalPoster" class="img-fluid rounded shadow-lg w-100">
+              </div>
+              <div id="modalStatusContainer"></div>
+            </div>
+            <div class="col-md-7 col-lg-8">
+              <div class="d-flex flex-wrap gap-2 mb-3" id="modalTags"></div>
+              <div class="mb-4">
+                <h6 class="text-uppercase text-secondary fw-bold small">Sinopse</h6>
+                <p id="modalSynopsis" class="lead fs-6">Sinopse...</p>
+              </div>
+              <div class="row mb-4">
+                <div class="col-6">
+                  <h6 class="text-uppercase text-secondary fw-bold small">Ano</h6>
+                  <p id="modalYear" class="fw-medium mb-0">-</p>
+                </div>
+                <div class="col-6">
+                  <h6 class="text-uppercase text-secondary fw-bold small">Episódios</h6>
+                  <p id="modalEpisodes" class="fw-medium mb-0">-</p>
+                </div>
+              </div>
+              <div>
+                <h6 class="text-uppercase text-secondary fw-bold small mb-2">Elenco Principal</h6>
+                <div id="modalCast" class="d-flex flex-wrap gap-2"></div>
+              </div>
+
+              <!-- Reviews Section -->
+              <div class="mt-4 pt-3 border-top">
+                <h6 class="text-uppercase text-secondary fw-bold small mb-2">Avaliações e Comentários</h6>
+
+                <div id="userReviewForm" class="mb-3 d-none">
+                  <div class="card bg-light border-0">
+                    <div class="card-body">
+                      <h6 class="card-title h6 mb-2">Sua Avaliação</h6>
+                      <form id="reviewForm">
+                        <div class="mb-2 rating-stars">
+                          <div class="d-flex gap-2">
+                            <input type="radio" class="btn-check" name="rating" id="star1" value="1"><label
+                              class="btn btn-outline-warning btn-sm" for="star1">1★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star2" value="2"><label
+                              class="btn btn-outline-warning btn-sm" for="star2">2★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star3" value="3"><label
+                              class="btn btn-outline-warning btn-sm" for="star3">3★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star4" value="4"><label
+                              class="btn btn-outline-warning btn-sm" for="star4">4★</label>
+                            <input type="radio" class="btn-check" name="rating" id="star5" value="5"><label
+                              class="btn btn-outline-warning btn-sm" for="star5">5★</label>
+                          </div>
+                        </div>
+                        <textarea class="form-control mb-2" id="reviewComment" rows="2"
+                          placeholder="Escreva seu comentário..." required></textarea>
+                        <button type="submit" class="btn btn-sm btn-primary">Enviar</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="reviewsList" class="vstack gap-3" style="max-height: 300px; overflow-y: auto;">
+                  <p class="text-muted small">Nenhuma avaliação ainda.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal (Needed? Yes, if session expires or to logout/login ref) -->
+  <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Acesse sua Conta</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Auth Forms (Simplified or copied if needed, mostly for login again) -->
+          <p>Por favor, faça login na página inicial se necessário.</p>
+          <a href="index.html" class="btn btn-primary w-100">Ir para Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add hidden search input to prevent JS format error if shared script expects it? 
+       scripts.js: `this.searchInput = document.getElementById('searchInput');` in DramaManager.
+       Since we instantiate DramaManager in initApp locally, it might error if searchInput is missing.
+       Let's add a hidden one or ensure script doesn't crash.
+  -->
+  <form id="searchForm" class="d-none">
+    <input id="searchInput" type="text">
+  </form>
+  <!-- Also `atoresCarousel` is expected by ActorsManager -->
+  <div id="atoresCarousel" class="d-none">
+    <div class="carousel-inner"></div>
+  </div>
+  <!-- `dramaGrid` is expected by DramaManager -->
+  <div id="dramaGrid" class="d-none"></div>
+
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supa-client.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/scripts.js"></script>
+</body>
+
+</html>

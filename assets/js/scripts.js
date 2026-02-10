@@ -379,6 +379,11 @@ class DramaManager {
       castContainer.innerHTML = '<span class="text-muted small">Elenco não informado</span>';
     }
 
+    // Load Reviews
+    if (window.reviewManager) {
+      window.reviewManager.loadReviews(drama.id);
+    }
+
     // Show Modal
     const modal = new bootstrap.Modal(document.getElementById('dramaModal'));
     modal.show();
@@ -507,6 +512,141 @@ class DramaManager {
   }
 }
 
+// Gerenciador do Perfil do Usuário
+class ProfileManager {
+  constructor(dramas) {
+    this.favContainer = document.getElementById('favoritesGrid');
+    this.watchingContainer = document.getElementById('watchingGrid');
+    this.planContainer = document.getElementById('planGrid');
+    this.completedContainer = document.getElementById('completedGrid');
+    this.droppedContainer = document.getElementById('droppedGrid');
+
+    this.dramas = dramas || [];
+    this.init();
+  }
+
+  async init() {
+    console.log("ProfileManager init...", this.dramas.length, "dramas");
+
+    // Setup listener first in case auth happens immediately after check
+    const authHandler = async (e) => {
+      if (e.detail.user) {
+        console.log("Auth event detected, loading profile...");
+        await this.loadAndRender();
+      } else {
+        console.log("Auth logout detected");
+        window.location.href = 'index.html';
+      }
+    };
+    document.addEventListener('auth:stateChanged', authHandler);
+
+    // Initial check
+    if (AuthManager.user) {
+      console.log("User already logged in, loading...");
+      await this.loadAndRender();
+    } else {
+      console.log("Waiting for auth...");
+      // Fallback timeout
+      setTimeout(() => {
+        if (!AuthManager.user && document.getElementById('favoritesGrid').innerHTML.includes('spinner')) {
+          console.warn("Auth timeout - check console for errors");
+        }
+      }, 5000);
+    }
+  }
+
+  async loadAndRender() {
+    try {
+      await UserDataManager.loadData();
+      this.renderProfile();
+    } catch (e) {
+      console.error("Profile render error:", e);
+      this.favContainer.innerHTML = '<p class="text-danger">Erro ao carregar dados.</p>';
+    }
+  }
+
+  renderProfile() {
+    console.log("Rendering profile...");
+
+    // Favorites
+    const favorites = this.dramas.filter(d => UserDataManager.isFavorite(d));
+    this.renderSection(this.favContainer, favorites, 'Nenhum favorito ainda.');
+
+    // Status Sections
+    this.renderStatusSection(this.watchingContainer, 'Assistindo');
+    this.renderStatusSection(this.planContainer, 'Assistir em breve');
+    this.renderStatusSection(this.completedContainer, 'Assistidos');
+    this.renderStatusSection(this.droppedContainer, 'Terminar de assistir');
+  }
+
+  renderStatusSection(container, status) {
+    if (!container) return;
+    const items = this.dramas.filter(d => UserDataManager.getStatus(d) === status);
+    this.renderSection(container, items, `Nenhum drama em "${status}".`);
+  }
+
+  renderSection(container, items, emptyMsg) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (items.length === 0) {
+      container.innerHTML = `<p class="text-muted fst-italic">${emptyMsg}</p>`;
+      return;
+    }
+
+    items.forEach(drama => {
+      const card = this.createCard(drama);
+      container.appendChild(card);
+    });
+  }
+
+  createCard(drama) {
+    const card = document.createElement('div');
+    card.className = 'drama-card'; // Reuse CSS
+
+    const isFav = UserDataManager.isFavorite(drama);
+    const userStatus = UserDataManager.getStatus(drama);
+
+    const img = new Image();
+    img.src = getDramaImage(drama.image);
+    img.className = 'drama-img';
+    img.loading = 'lazy';
+    img.onerror = () => img.src = CONFIG.defaultImage;
+
+    const favBtn = document.createElement('button');
+    favBtn.className = `favorite-btn ${isFav ? 'active' : ''}`;
+    favBtn.innerHTML = isFav ? '<i class="bi bi-heart-fill"></i>' : '<i class="bi bi-heart"></i>';
+    favBtn.onclick = async (e) => {
+      e.stopPropagation();
+      const newFav = await UserDataManager.toggleFavorite(drama);
+      favBtn.classList.toggle('active');
+      favBtn.innerHTML = newFav ? '<i class="bi bi-heart-fill"></i>' : '<i class="bi bi-heart"></i>';
+    };
+
+    const statusBadge = document.createElement('span');
+    statusBadge.className = 'badge bg-primary position-absolute top-0 end-0 m-2';
+    statusBadge.textContent = userStatus || '';
+
+    card.innerHTML = `
+        <div class="d-flex flex-column align-items-center">
+          <h5 class="drama-title">${drama.title}</h5>
+        </div>
+      `;
+
+    card.querySelector('div').prepend(img);
+    card.appendChild(favBtn);
+    if (userStatus) card.appendChild(statusBadge);
+
+    card.addEventListener('click', () => {
+      if (window.dramaManager) {
+        window.dramaManager.openDetailsModal(drama);
+      }
+    });
+
+    return card;
+  }
+}
+
 
 // Gerenciador de Atores
 class ActorsManager {
@@ -602,6 +742,140 @@ class ThemeManager {
   }
 }
 
+// Gerenciador de Avaliações
+class ReviewManager {
+  constructor() {
+    this.currentDramaId = null;
+    this.reviewsList = document.getElementById('reviewsList');
+    this.reviewForm = document.getElementById('reviewForm');
+    this.userReviewFormContainer = document.getElementById('userReviewForm');
+
+    this.setupListeners();
+  }
+
+  setupListeners() {
+    if (this.reviewForm) {
+      this.reviewForm.addEventListener('submit', (e) => this.handleSubmit(e));
+    }
+  }
+
+  async loadReviews(dramaId) {
+    this.currentDramaId = dramaId;
+    this.reviewsList.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>';
+
+    // Check if user is logged in to show form
+    if (AuthManager && AuthManager.user) {
+      this.userReviewFormContainer.classList.remove('d-none');
+    } else {
+      this.userReviewFormContainer.classList.add('d-none');
+    }
+
+    try {
+      const { data: reviews, error } = await window.supabaseClient
+        .from('reviews')
+        .select(`
+            id,
+            rating,
+            comment,
+            created_at,
+            user_id
+        `) // Note: In a real app we would join with specific user profile table for names
+        .eq('drama_id', dramaId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      this.renderReviews(reviews);
+
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+      this.reviewsList.innerHTML = '<p class="text-danger small">Erro ao carregar avaliações.</p>';
+    }
+  }
+
+  renderReviews(reviews) {
+    this.reviewsList.innerHTML = '';
+
+    if (!reviews || reviews.length === 0) {
+      this.reviewsList.innerHTML = '<p class="text-muted small">Nenhuma avaliação ainda. Seja o primeiro a avaliar!</p>';
+      return;
+    }
+
+    const startHtml = (rating) => {
+      let stars = '';
+      for (let i = 1; i <= 5; i++) {
+        stars += i <= rating ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-secondary"></i>';
+      }
+      return stars;
+    };
+
+    reviews.forEach(review => {
+      // Mask user ID for privacy since we don't have public profiles yet
+      const displayUser = review.user_id === (AuthManager.user?.id) ? 'Você' : 'Usuário';
+
+      const item = document.createElement('div');
+      item.className = 'border-bottom pb-2';
+      item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong class="d-block small">${displayUser}</strong>
+                    <div class="small">${startHtml(review.rating)}</div>
+                </div>
+                <small class="text-muted" style="font-size: 0.75rem;">
+                    ${new Date(review.created_at).toLocaleDateString()}
+                </small>
+            </div>
+            <p class="mb-0 small mt-1 text-break">${review.comment || ''}</p>
+        `;
+      this.reviewsList.appendChild(item);
+    });
+  }
+
+  async handleSubmit(e) {
+    e.preventDefault();
+    if (!AuthManager.user || !this.currentDramaId) return;
+
+    const rating = document.querySelector('input[name="rating"]:checked')?.value;
+    const comment = document.getElementById('reviewComment').value;
+
+    if (!rating) {
+      alert('Por favor, selecione uma nota.');
+      return;
+    }
+
+    try {
+      const submitBtn = this.reviewForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+
+      const { error } = await window.supabaseClient
+        .from('reviews')
+        .insert({
+          user_id: AuthManager.user.id,
+          drama_id: this.currentDramaId,
+          rating: parseInt(rating),
+          comment: comment
+        });
+
+      if (error) throw error;
+
+      // Reset form
+      this.reviewForm.reset();
+
+      // Reload reviews
+      await this.loadReviews(this.currentDramaId);
+
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Erro ao enviar avaliação: ' + error.message);
+    } finally {
+      const submitBtn = this.reviewForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar';
+    }
+  }
+}
+
 // Carrega os dados do Supabase e inicializa o DramaManager
 async function initApp() {
   try {
@@ -621,7 +895,14 @@ async function initApp() {
       await UserDataManager.loadData();
 
       const dramaManager = new DramaManager('dramaGrid', dramas);
+      window.dramaManager = dramaManager; // Expose for Profile usage
+      window.reviewManager = new ReviewManager(); // Initialize Review Manager
       new ActorsManager('#atoresCarousel');
+
+      // Initialize Profile if element exists
+      if (document.getElementById('favoritesGrid')) {
+        new ProfileManager(dramas);
+      }
 
       // Listen for Auth Changes to reload data
       document.addEventListener('auth:stateChanged', async () => {

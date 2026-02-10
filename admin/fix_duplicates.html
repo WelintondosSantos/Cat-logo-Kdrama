@@ -11,9 +11,13 @@
 
 <body class="bg-light p-5">
     <div class="container bg-white p-5 rounded shadow">
-        <h1>Admin: Fix Duplicates</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Admin: Fix Duplicates</h1>
+            <a href="index.html" class="btn btn-outline-secondary">Voltar ao Dashboard</a>
+        </div>
         <p class="lead">This tool will scan your <code>dramas</code> table and remove duplicate entries based on the
-            <strong>Title</strong>. It keeps the entry with the lowest ID (oldest).</p>
+            <strong>Title</strong>. It keeps the entry with the lowest ID (oldest).
+        </p>
 
         <div class="mb-3">
             <label class="form-label">Supabase Project URL</label>
