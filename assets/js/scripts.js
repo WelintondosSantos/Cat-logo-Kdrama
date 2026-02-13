@@ -12,8 +12,20 @@ function getDramaImage(imageName) {
 // Gerenciador de Dados do Usuário (Cloud + LocalStorage)
 class UserDataManager {
   static async loadData() {
-    this.localStatus = JSON.parse(localStorage.getItem('userDramaStatus') || '{}');
-    this.localFavorites = JSON.parse(localStorage.getItem('favoriteDramas') || '[]');
+    try {
+      this.localStatus = JSON.parse(localStorage.getItem('userDramaStatus') || '{}');
+    } catch (e) {
+      console.warn('Corrupted local status, resetting.', e);
+      this.localStatus = {};
+    }
+
+    try {
+      this.localFavorites = JSON.parse(localStorage.getItem('favoriteDramas') || '[]');
+    } catch (e) {
+      console.warn('Corrupted local favorites, resetting.', e);
+      this.localFavorites = [];
+    }
+
     this.cloudData = {}; // Map: dramaId -> { status, is_favorite }
 
     if (AuthManager && AuthManager.user) {
@@ -548,10 +560,21 @@ class ProfileManager {
       console.log("Waiting for auth...");
       // Fallback timeout
       setTimeout(() => {
-        if (!AuthManager.user && document.getElementById('favoritesGrid').innerHTML.includes('spinner')) {
-          console.warn("Auth timeout - check console for errors");
+        const favGrid = document.getElementById('favoritesGrid');
+        if (!AuthManager.user && favGrid && favGrid.innerHTML.includes('spinner')) {
+          console.warn("Auth timeout");
+          favGrid.innerHTML = `
+            <div class="alert alert-warning">
+                Tempo de carregamento excedido. <a href="index.html" class="alert-link">Tente fazer login novamente</a> ou verifique sua conexão.
+            </div>
+          `;
+          // Clear other spinners
+          ['watchingGrid', 'planGrid', 'completedGrid', 'droppedGrid'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '';
+          });
         }
-      }, 5000);
+      }, 8000); // 8 seconds timeout
     }
   }
 
@@ -719,6 +742,9 @@ class ActorsManager {
 class ThemeManager {
   constructor() {
     this.toggleBtn = document.getElementById('themeToggle');
+    if (!this.toggleBtn) {
+      console.warn('Theme toggle button not found. ThemeManager will run in headless mode.');
+    }
     this.icon = this.toggleBtn;
     this.theme = localStorage.getItem('theme') || 'light';
     this.init();
@@ -726,12 +752,16 @@ class ThemeManager {
 
   init() {
     this.applyTheme(this.theme);
-    this.toggleBtn.addEventListener('click', () => this.toggleTheme());
+    if (this.toggleBtn) {
+      this.toggleBtn.addEventListener('click', () => this.toggleTheme());
+    }
   }
 
   applyTheme(theme) {
     document.documentElement.setAttribute('data-bs-theme', theme);
-    this.toggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (this.toggleBtn) {
+      this.toggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
     localStorage.setItem('theme', theme);
     this.theme = theme;
   }
@@ -913,12 +943,41 @@ async function initApp() {
     }
   } catch (error) {
     console.error("Erro ao carregar os dramas do Supabase:", error);
-    document.getElementById('dramaGrid').innerHTML = `
-      <div class="alert alert-danger" role="alert">
-        Erro ao carregar dados. Verifique suas credenciais do Supabase em supa-client.js
-        <br>Erro: ${error.message}
+
+    const errorMsg = `
+      <div class="alert alert-danger mx-3 my-3" role="alert">
+        <h4 class="alert-heading">Erro de Carregamento</h4>
+        <p>Ocorreu um problema ao carregar os dados. Tente recarregar a página.</p>
+        <hr>
+        <p class="mb-0 small">Detalhes técnicos: ${error.message}</p>
+        ${error.message.includes('supa') ? '<p class="small mt-1">Verifique as credenciais do Supabase ou sua conexão.</p>' : ''}
       </div>
     `;
+
+    // Show error in dramaGrid checking if it's the main container
+    const dramaGrid = document.getElementById('dramaGrid');
+    if (dramaGrid) {
+      dramaGrid.innerHTML = errorMsg;
+      if (dramaGrid.classList.contains('d-none')) {
+        // We are likely on profile page or grid is hidden.
+        // Try to find profile containers to show error
+        const favGrid = document.getElementById('favoritesGrid');
+        if (favGrid) {
+          favGrid.innerHTML = errorMsg;
+          // Also clear other spinners
+          ['watchingGrid', 'planGrid', 'completedGrid', 'droppedGrid'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '';
+          });
+        } else {
+          // If grid is hidden and no favGrid, force show grid to show error?
+          dramaGrid.classList.remove('d-none');
+        }
+      }
+    } else {
+      // Fallback for pages without dramaGrid
+      document.body.insertAdjacentHTML('afterbegin', errorMsg);
+    }
   }
 }
 

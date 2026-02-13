@@ -427,3 +427,238 @@
     border-color: #495057;
     color: #e9ecef;
 }
+
+/* --- Modern Navbar Styles --- */
+.glass-navbar {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    font-size: 1.35rem;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: 0;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: #4b5563 !important;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--primary-color) !important;
+    position: relative;
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+/* Modern Search Input */
+.form-control.rounded-pill {
+    padding-left: 1.25rem;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.form-control.rounded-pill:focus {
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+    border-color: var(--primary-color);
+}
+
+/* Theme Toggle Button */
+#themeToggle {
+    border: 1px solid #e2e8f0;
+    background: transparent;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    font-size: 1.1rem;
+    margin: 0 0.5rem;
+    /* Add margin */
+}
+
+#themeToggle:hover {
+    background-color: #f1f5f9;
+    transform: rotate(15deg);
+}
+
+/* User Menu Button */
+#userMenuBtn {
+    border-radius: 50px;
+    padding: 0.375rem 1rem;
+    font-weight: 500;
+    background-color: #f8fafc;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+#userMenuBtn:hover {
+    background-color: #e2e8f0;
+    color: #1e293b;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Mode Overrides for Navbar */
+[data-bs-theme="dark"] .glass-navbar {
+    background: rgba(22, 22, 24, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .nav-link {
+    color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .nav-link:hover {
+    color: #fff !important;
+}
+
+[data-bs-theme="dark"] .form-control.rounded-pill {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .form-control.rounded-pill:focus {
+    background-color: #0f172a;
+    border-color: var(--primary-color);
+}
+
+[data-bs-theme="dark"] #themeToggle {
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] #themeToggle:hover {
+    background-color: #334155;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] #userMenuBtn {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] #userMenuBtn:hover {
+    background-color: #334155;
+}
+
+[data-bs-theme="dark"] .navbar-brand {
+    /* background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); Keeps consistent brand color or adjust for dark */
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    /* Glowing effect */
+}
+
+/* Modern Dropdown */
+.dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 0.5rem;
+    margin-top: 0.5rem !important;
+    /* Offset from button */
+    animation: fadeInDropdown 0.2s ease-out;
+}
+
+@keyframes fadeInDropdown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: #4b5563;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #f3f4f6;
+    color: var(--primary-color);
+    transform: translateX(3px);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.dropdown-divider {
+    border-top: 1px solid #e5e7eb;
+    margin: 0.5rem 0;
+}
+
+/* Profile specific Nav Link to match brand vibe */
+.navbar-nav .nav-link {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Mode Dropdown */
+[data-bs-theme="dark"] .dropdown-menu {
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+    color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover,
+[data-bs-theme="dark"] .dropdown-item:focus {
+    background-color: #334155;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .dropdown-divider {
+    border-top-color: #334155;
+}
+
+[data-bs-theme="dark"] .navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
