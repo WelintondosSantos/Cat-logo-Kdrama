@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - K-Drama Cine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .admin-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-5px);
+            border-color: #0d6efd;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">Admin Dashboard</a>
+            <a href="../index.html" class="btn btn-outline-light btn-sm">Voltar ao Site</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row g-4">
+            <!-- Sync Tool -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm admin-card" onclick="location.href='sync_dramas.html'">
+                    <div class="card-body text-center">
+                        <h1 class="text-primary mb-3"><i class="bi bi-cloud-upload"></i></h1>
+                        <h5 class="card-title">Sincronizar Dramas</h5>
+                        <p class="card-text text-muted">Importar JSON para o Supabase.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fix Duplicates -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm admin-card" onclick="location.href='fix_duplicates.html'">
+                    <div class="card-body text-center">
+                        <h1 class="text-warning mb-3"><i class="bi bi-eraser-fill"></i></h1>
+                        <h5 class="card-title">Remover Duplicatas</h5>
+                        <p class="card-text text-muted">Limpar registros duplicados.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fix Paths -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm admin-card" onclick="location.href='fix_paths.html'">
+                    <div class="card-body text-center">
+                        <h1 class="text-info mb-3"><i class="bi bi-folder-symlink"></i></h1>
+                        <h5 class="card-title">Corrigir Caminhos</h5>
+                        <p class="card-text text-muted">Ajustar URLs de imagens.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm admin-card" onclick="location.href='debug_dramas.html'">
+                    <div class="card-body text-center">
+                        <h1 class="text-secondary mb-3"><i class="bi bi-bug-fill"></i></h1>
+                        <h5 class="card-title">Debug Rápido</h5>
+                        <p class="card-text text-muted">Visualizar dados brutos.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Migrate Data (Legacy) -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm admin-card" onclick="location.href='migrate_data.html'">
+                    <div class="card-body text-center">
+                        <h1 class="text-secondary mb-3"><i class="bi bi-database-up"></i></h1>
+                        <h5 class="card-title">Migrar LocalStorage</h5>
+                        <p class="card-text text-muted">Ferramenta antiga de migração.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Auth Script Check (Simple) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
+    <script>
+        // Very basic client-side protection
+        // Ideally should check a role in DB
+        async function checkAdmin() {
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                alert("Acesso restrito. Faça login primeiro.");
+                window.location.href = '../index.html';
+                return;
+            }
+            // Add allowed emails here if needed for rudimentary security
+            // const allowed = ['admin@example.com'];
+            // if (!allowed.includes(session.user.email)) ...
+        }
+        checkAdmin();
+    </script>
+</body>
+
+</html>

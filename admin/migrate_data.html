@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supa-Migration Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="bg-light p-5">
+    <div class="container bg-white p-5 rounded shadow">
+        <h1>Admin: Data Migration</h1>
+        <p class="lead">Use this tool to upload your <code>dramas.json</code> and <code>atores.json</code> data to
+            Supabase.</p>
+
+        <div class="mb-3">
+            <label class="form-label">Supabase Project URL</label>
+            <input type="text" id="supaUrl" class="form-control" value="https://qgvqhzptkgtbuxcxiiph.supabase.co">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Supabase Anon Key</label>
+            <input type="text" id="supaKey" class="form-control" value="sb_publishable_vmeXKKSRI1cERYF47eiKAg_wp_NeEXa">
+        </div>
+
+        <button class="btn btn-primary" onclick="startMigration()">Start Migration</button>
+
+        <div class="mt-4">
+            <h5>Log:</h5>
+            <pre id="log" class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: scroll;"></pre>
+        </div>
+    </div>
+
+    <script>
+        function log(msg) {
+            const logEl = document.getElementById('log');
+            logEl.innerHTML += `<div>${new Date().toLocaleTimeString()} - ${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function startMigration() {
+            const url = document.getElementById('supaUrl').value.trim();
+            const key = document.getElementById('supaKey').value.trim();
+
+            if (!url || !key) {
+                alert('Please enter URL and Key');
+                return;
+            }
+
+            const supabase = window.supabase.createClient(url, key);
+            log('Starting migration...');
+
+            try {
+                // 1. Migrate Actors
+                log('Fetching atores.json...');
+                const resAtores = await fetch('../data/atores.json');
+                const atores = await resAtores.json();
+
+                log(`Found ${atores.length} actors. Uploading...`);
+                const { error: errAtores } = await supabase.from('atores').insert(atores);
+
+                if (errAtores) {
+                    log('Error uploading actors: ' + errAtores.message);
+                    console.error(errAtores);
+                } else {
+                    log('Success! Actors uploaded.');
+                }
+
+                // 2. Migrate Dramas
+                log('Fetching dramas.json...');
+                const resDramas = await fetch('../data/dramas.json');
+                const dramas = await resDramas.json();
+
+                log(`Found ${dramas.length} dramas. Uploading...`);
+                // Split into chunks to avoid payload limits if necessary, but 20 items is small.
+                // dramas.json might be large.
+                // Let's dump in chunks of 50.
+                const CHUNK_SIZE = 50;
+                for (let i = 0; i < dramas.length; i += CHUNK_SIZE) {
+                    const chunk = dramas.slice(i, i + CHUNK_SIZE);
+                    const { error: errDramas } = await supabase.from('dramas').insert(chunk);
+                    if (errDramas) {
+                        log(`Error uploading batch ${i}: ` + errDramas.message);
+                    } else {
+                        log(`Uploaded batch ${i} - ${i + chunk.length}`);
+                    }
+                }
+
+                log('Migration completed!');
+
+            } catch (e) {
+                log('Unexpected error: ' + e.message);
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+
+</html>

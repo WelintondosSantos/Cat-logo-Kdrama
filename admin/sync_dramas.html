@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sincronizar Dramas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-dark text-white container py-5">
+    <div class="card bg-secondary text-white">
+        <div class="card-header">
+            <h1>Sincronizar Dramas (JSON -> Supabase)</h1>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                Este utilitário lê o arquivo local <code>dramas.json</code> e atualiza o banco de dados Supabase.<br>
+                Novos dramas serão adicionados. Dramas existentes serão atualizados (baseado no Título).
+            </p>
+
+            <div class="mb-3">
+                <label class="form-label">Supabase URL & Key (Do supa-client.js)</label>
+                <div class="input-group">
+                    <span class="input-group-text">Status</span>
+                    <input type="text" class="form-control" id="status" value="Aguardando..." readonly>
+                </div>
+            </div>
+
+            <button id="syncBtn" class="btn btn-primary w-100">Iniciar Sincronização</button>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h5>Log de Operações:</h5>
+        <div id="output" class="p-3 bg-black rounded font-monospace"
+            style="height: 400px; overflow-y: scroll; white-space: pre-wrap; color: #0f0;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
+    <script>
+        const output = document.getElementById('output');
+        const statusDetails = document.getElementById('status');
+
+        const log = (msg) => {
+            const time = new Date().toLocaleTimeString();
+            output.innerHTML += `[${time}] ${msg}\n`;
+            output.scrollTop = output.scrollHeight;
+        };
+
+        const updateStatus = (msg) => {
+            statusDetails.value = msg;
+        };
+
+        document.getElementById('syncBtn').addEventListener('click', async () => {
+            log('🚀 Iniciando processo de sincronização...');
+            updateStatus('Lendo dramas.json...');
+
+            try {
+                // 1. Ler arquivo JSON local
+                const response = await fetch('../data/dramas.json');
+                if (!response.ok) throw new Error('Não foi possível encontrar ou ler dramas.json');
+                const dramas = await response.json();
+
+                log(`📂 Arquivo JSON carregado com sucesso. Total de itens: ${dramas.length}`);
+
+                if (dramas.length === 0) {
+                    log('⚠️ O arquivo JSON está vazio. Nada a fazer.');
+                    return;
+                }
+
+                updateStatus('Conectando ao Supabase...');
+                const client = window.supabaseClient;
+                if (!client) throw new Error('Cliente Supabase não inicializado (verifique supa-client.js)');
+
+                // 2. Processar cada drama
+                let added = 0;
+                let updated = 0;
+                let errors = 0;
+
+                updateStatus(`Processando ${dramas.length} dramas...`);
+
+                for (let i = 0; i < dramas.length; i++) {
+                    const drama = dramas[i];
+                    const percent = Math.round(((i + 1) / dramas.length) * 100);
+
+                    // Normalizar dados para o formato do banco
+                    const dramaPayload = {
+                        title: drama.title,
+                        image: drama.image,
+                        genres: drama.genres,
+                        status: drama.status || null, // Salva o status, mas lembre-se que o user_library tem precedência na UI
+                        ano: drama.ano || null,
+                        sinopse: drama.sinopse || null,
+                        elenco: drama.elenco || [],
+                        episodios: drama.episodios || null
+                    };
+
+                    // Tentar encontrar pelo Título exato
+                    const { data: existing, error: findError } = await client
+                        .from('dramas')
+                        .select('id')
+                        .ilike('title', drama.title.trim()) // Case-insensitive check
+                        .maybeSingle();
+
+                    if (findError) {
+                        log(`❌ Erro ao buscar "${drama.title}": ${findError.message}`);
+                        errors++;
+                        continue;
+                    }
+
+                    if (existing) {
+                        // UPDATE
+                        // log(`🔄 Atualizando: "${drama.title}" (ID: ${existing.id})`);
+                        const { error: updateError } = await client
+                            .from('dramas')
+                            .update(dramaPayload)
+                            .eq('id', existing.id);
+
+                        if (updateError) {
+                            log(`❌ Falha ao atualizar "${drama.title}": ${updateError.message}`);
+                            errors++;
+                        } else {
+                            updated++;
+                        }
+                    } else {
+                        // INSERT
+                        log(`✨ Criando NOVO: "${drama.title}"`);
+                        const { error: insertError } = await client
+                            .from('dramas')
+                            .insert([dramaPayload]);
+
+                        if (insertError) {
+                            log(`❌ Falha ao inserir "${drama.title}": ${insertError.message}`);
+                            errors++;
+                        } else {
+                            added++;
+                        }
+                    }
+
+                    // Atualizar status visual a cada 10 itens para performance
+                    if (i % 10 === 0) updateStatus(`Processando... ${percent}%`);
+                }
+
+                updateStatus('Concluído!');
+                log('-----------------------------------');
+                log('🎉 Sincronização Finalizada!');
+                log(`➕ Adicionados: ${added}`);
+                log(`🔄 Atualizados: ${updated}`);
+                log(`❌ Erros: ${errors}`);
+                log('-----------------------------------');
+                log('💡 DICA: Atualize a página principal para ver as alterações.');
+
+            } catch (err) {
+                log(`⛔ ERRO FATAL: ${err.message}`);
+                console.error(err);
+                updateStatus('Erro Fatal');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Dramas</title>
+</head>
+
+<body>
+    <h1>Primeiros 10 Dramas (Ordenados)</h1>
+    <ul id="list"></ul>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
+    <script>
+        async function run() {
+            const { data, error } = await window.supabaseClient
+                .from('dramas')
+                .select('id, title')
+                .order('title', { ascending: true })
+                .limit(10);
+
+            if (error) {
+                document.body.innerText = "Erro: " + error.message;
+                return;
+            }
+
+            const list = document.getElementById('list');
+            data.forEach(d => {
+                const li = document.createElement('li');
+                li.innerText = `[${d.id}] "${d.title}" (Code: ${d.title.charCodeAt(0)})`;
+                list.appendChild(li);
+            });
+        }
+        run();
+    </script>
+</body>
+
+</html>
