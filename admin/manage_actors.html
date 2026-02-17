@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Atores - K-Drama Cine Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .admin-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .actor-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+
+        .actor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .actor-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .image-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #667eea;
+            margin: 1rem auto;
+            display: none;
+        }
+
+        .image-preview.show {
+            display: block;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="admin-container">
+            <!-- Header -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h2 mb-1">
+                            <i class="bi bi-person-video3 text-primary"></i>
+                            Gerenciar Atores
+                        </h1>
+                        <p class="text-muted mb-0">Adicione, edite ou remova atores do carrossel</p>
+                    </div>
+                    <a href="index.html" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Add Actor Form -->
+            <div class="card mb-4" style="border-radius: 15px; border: 2px solid #667eea;">
+                <div class="card-header"
+                    style="background: var(--primary-gradient); color: white; border-radius: 13px 13px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> Adicionar Novo Ator
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="addActorForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="actorName" class="form-label">Nome do Ator</label>
+                                    <input type="text" class="form-control" id="actorName" required
+                                        placeholder="Ex: Song Joong-Ki">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="actorImage" class="form-label">Imagem do Ator</label>
+                                    <input type="file" class="form-control" id="actorImage" accept="image/*" required>
+                                    <small class="text-muted">Formatos aceitos: JPG, PNG, WEBP</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div class="text-center">
+                            <img id="imagePreview" class="image-preview" alt="Preview">
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-plus-lg"></i> Adicionar Ator
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Actors List -->
+            <div class="card" style="border-radius: 15px;">
+                <div class="card-header bg-light" style="border-radius: 13px 13px 0 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-stars"></i> Atores Cadastrados
+                            <span class="badge bg-primary" id="actorCount">0</span>
+                        </h5>
+                        <button class="btn btn-warning btn-sm" id="removeDuplicatesBtn" onclick="removeDuplicates()">
+                            <i class="bi bi-eraser-fill"></i> Remover Duplicatas
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="actorsList">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p class="text-muted mt-3">Carregando atores...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header"
+                    style="background: var(--primary-gradient); color: white; border-radius: 13px 13px 0 0;">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square"></i> Editar Ator
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editActorForm">
+                        <input type="hidden" id="editActorId">
+                        <div class="mb-3">
+                            <label for="editActorName" class="form-label">Nome do Ator</label>
+                            <input type="text" class="form-control" id="editActorName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editActorImage" class="form-label">Nova Imagem (opcional)</label>
+                            <input type="file" class="form-control" id="editActorImage" accept="image/*">
+                        </div>
+                        <div class="text-center">
+                            <img id="editImagePreview" class="image-preview" alt="Preview">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveEditBtn">
+                        <i class="bi bi-check-lg"></i> Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
+    <script src="fix-duplicates.js"></script>
+
+    <script>
+        // Alert helper
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.getElementById('alertContainer').appendChild(alertDiv);
+
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        // Image preview handler
+        document.getElementById('actorImage').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('editActorImage').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById('editImagePreview');
+                    preview.src = e.target.result;
+                    preview.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Load actors
+        async function loadActors() {
+            try {
+                const { data: actors, error } = await window.supabaseClient
+                    .from('atores')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
+                displayActors(actors);
+            } catch (error) {
+                console.error('Erro ao carregar atores:', error);
+                document.getElementById('actorsList').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Erro ao carregar atores: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Display actors
+        function displayActors(actors) {
+            const container = document.getElementById('actorsList');
+            document.getElementById('actorCount').textContent = actors.length;
+
+            if (actors.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3">Nenhum ator cadastrado ainda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Clear container
+            container.innerHTML = '';
+
+            // Create actor cards using DOM manipulation to avoid escaping issues
+            actors.forEach(actor => {
+                const actorCard = document.createElement('div');
+                actorCard.className = 'actor-card';
+
+                const row = document.createElement('div');
+                row.className = 'row align-items-center';
+
+                // Image column
+                const imgCol = document.createElement('div');
+                imgCol.className = 'col-auto';
+                const img = document.createElement('img');
+                img.src = getActorImagePath(actor.image);
+                img.className = 'actor-image';
+                img.alt = actor.name;
+                img.onerror = function () { this.src = '../assets/img/default-actor.png'; };
+                imgCol.appendChild(img);
+
+                // Name column
+                const nameCol = document.createElement('div');
+                nameCol.className = 'col';
+                const nameH5 = document.createElement('h5');
+                nameH5.className = 'mb-1';
+                nameH5.textContent = actor.name;
+                const idP = document.createElement('p');
+                idP.className = 'text-muted mb-0';
+                idP.innerHTML = `<small>ID: ${actor.id}</small>`;
+                nameCol.appendChild(nameH5);
+                nameCol.appendChild(idP);
+
+                // Buttons column
+                const btnCol = document.createElement('div');
+                btnCol.className = 'col-auto';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-outline-primary btn-sm me-2';
+                editBtn.innerHTML = '<i class="bi bi-pencil"></i> Editar';
+                editBtn.onclick = () => editActor(actor.id, actor.name, actor.image);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-outline-danger btn-sm';
+                deleteBtn.innerHTML = '<i class="bi bi-trash"></i> Excluir';
+                deleteBtn.onclick = () => deleteActor(actor.id, actor.name);
+
+                btnCol.appendChild(editBtn);
+                btnCol.appendChild(deleteBtn);
+
+                // Assemble
+                row.appendChild(imgCol);
+                row.appendChild(nameCol);
+                row.appendChild(btnCol);
+                actorCard.appendChild(row);
+                container.appendChild(actorCard);
+            });
+        }
+
+        // Get actor image path (handle legacy paths and Supabase URLs)
+        function getActorImagePath(imagePath) {
+            if (!imagePath) {
+                return '../assets/img/default-actor.png';
+            }
+
+            // If it's already a full URL (from Supabase Storage), return as is
+            if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+                return imagePath;
+            }
+
+            // Handle legacy local paths
+            if (imagePath.includes('./atores/') || imagePath.startsWith('atores/')) {
+                return '../' + imagePath.replace(/^(\.\/)?atores\//, 'assets/img/actors/');
+            }
+
+            // Handle other relative paths
+            if (!imagePath.startsWith('/') && !imagePath.startsWith('../')) {
+                return '../' + imagePath;
+            }
+
+            return imagePath;
+        }
+
+        // Add actor
+        document.getElementById('addActorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('actorName').value;
+            const imageFile = document.getElementById('actorImage').files[0];
+
+            if (!imageFile) {
+                showAlert('Por favor, selecione uma imagem', 'warning');
+                return;
+            }
+
+            try {
+                // Upload image to Supabase Storage
+                const fileExt = imageFile.name.split('.').pop();
+                const fileName = `${Date.now()}-${name.toLowerCase().replace(/\s+/g, '-')}.${fileExt}`;
+                const filePath = `actors/${fileName}`;
+
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Enviando...';
+
+                // Upload to storage
+                const { error: uploadError } = await window.supabaseClient.storage
+                    .from('images')
+                    .upload(filePath, imageFile);
+
+                if (uploadError) throw uploadError;
+
+                // Get public URL
+                const { data: { publicUrl } } = window.supabaseClient.storage
+                    .from('images')
+                    .getPublicUrl(filePath);
+
+                // Insert actor record
+                const { error: insertError } = await window.supabaseClient
+                    .from('atores')
+                    .insert({
+                        name: name,
+                        image: publicUrl
+                    });
+
+                if (insertError) throw insertError;
+
+                showAlert(`Ator "${name}" adicionado com sucesso!`, 'success');
+
+                // Reset form
+                e.target.reset();
+                document.getElementById('imagePreview').classList.remove('show');
+
+                // Reload actors
+                loadActors();
+
+            } catch (error) {
+                console.error('Erro ao adicionar ator:', error);
+                showAlert(`Erro ao adicionar ator: ${error.message}`, 'danger');
+            } finally {
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-plus-lg"></i> Adicionar Ator';
+            }
+        });
+
+        // Edit actor
+        let editModal;
+        function editActor(id, name, image) {
+            document.getElementById('editActorId').value = id;
+            document.getElementById('editActorName').value = name;
+
+            const preview = document.getElementById('editImagePreview');
+            preview.src = getActorImagePath(image);
+            preview.classList.add('show');
+
+            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            editModal.show();
+        }
+
+        document.getElementById('saveEditBtn').addEventListener('click', async () => {
+            const id = document.getElementById('editActorId').value;
+            const name = document.getElementById('editActorName').value;
+            const imageFile = document.getElementById('editActorImage').files[0];
+
+            try {
+                const saveBtn = document.getElementById('saveEditBtn');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Salvando...';
+
+                let updateData = { name };
+
+                // If new image is provided, upload it
+                if (imageFile) {
+                    const fileExt = imageFile.name.split('.').pop();
+                    const fileName = `${Date.now()}-${name.toLowerCase().replace(/\s+/g, '-')}.${fileExt}`;
+                    const filePath = `actors/${fileName}`;
+
+                    const { error: uploadError } = await window.supabaseClient.storage
+                        .from('images')
+                        .upload(filePath, imageFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = window.supabaseClient.storage
+                        .from('images')
+                        .getPublicUrl(filePath);
+
+                    updateData.image = publicUrl;
+                }
+
+                const { error } = await window.supabaseClient
+                    .from('atores')
+                    .update(updateData)
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showAlert(`Ator "${name}" atualizado com sucesso!`, 'success');
+                editModal.hide();
+                loadActors();
+
+            } catch (error) {
+                console.error('Erro ao atualizar ator:', error);
+                showAlert(`Erro ao atualizar ator: ${error.message}`, 'danger');
+            } finally {
+                const saveBtn = document.getElementById('saveEditBtn');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-check-lg"></i> Salvar Alterações';
+            }
+        });
+
+        // Delete actor
+        async function deleteActor(id, name) {
+            if (!confirm(`Tem certeza que deseja excluir o ator "${name}"?`)) {
+                return;
+            }
+
+            try {
+                const { error } = await window.supabaseClient
+                    .from('atores')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showAlert(`Ator "${name}" excluído com sucesso!`, 'success');
+                loadActors();
+
+            } catch (error) {
+                console.error('Erro ao excluir ator:', error);
+                showAlert(`Erro ao excluir ator: ${error.message}`, 'danger');
+            }
+        }
+
+        // Remove duplicates
+        async function removeDuplicates() {
+            console.log('removeDuplicates() called');
+
+            try {
+                // Get all actors
+                console.log('Fetching actors from Supabase...');
+                const { data: actors, error } = await window.supabaseClient
+                    .from('atores')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    console.error('Error fetching actors:', error);
+                    throw error;
+                }
+
+                console.log(`Found ${actors.length} total actors`);
+
+                // Find duplicates
+                const nameMap = new Map();
+                const duplicates = [];
+
+                actors.forEach(actor => {
+                    const name = actor.name.trim().toLowerCase();
+                    console.log(`Processing: ${actor.name} (ID: ${actor.id})`);
+
+                    if (nameMap.has(name)) {
+                        // This is a duplicate, add to removal list
+                        console.log(`  -> Duplicate found! Will remove ID ${actor.id}`);
+                        duplicates.push(actor);
+                    } else {
+                        // First occurrence, keep it
+                        console.log(`  -> First occurrence, keeping ID ${actor.id}`);
+                        nameMap.set(name, actor);
+                    }
+                });
+
+                console.log(`Found ${duplicates.length} duplicates`);
+
+                if (duplicates.length === 0) {
+                    showAlert('Nenhuma duplicata encontrada!', 'info');
+                    return;
+                }
+
+                // Show confirmation
+                const duplicateList = duplicates.map(d => `  • ${d.name} (ID: ${d.id})`).join('\n');
+                const keepList = Array.from(nameMap.values())
+                    .filter(actor => duplicates.some(d => d.name.toLowerCase() === actor.name.toLowerCase()))
+                    .map(a => `  • ${a.name} (ID: ${a.id})`)
+                    .join('\n');
+
+                const message = `DUPLICATAS ENCONTRADAS:\n\n` +
+                    `Serão REMOVIDOS (${duplicates.length}):\n${duplicateList}\n\n` +
+                    `Serão MANTIDOS:\n${keepList}\n\n` +
+                    `Deseja continuar?`;
+
+                if (!confirm(message)) {
+                    console.log('User cancelled');
+                    return;
+                }
+
+                // Disable button
+                const btn = document.getElementById('removeDuplicatesBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Removendo...';
+
+                // Delete duplicates
+                console.log('Starting deletion...');
+                let removed = 0;
+                let errors = 0;
+
+                for (const duplicate of duplicates) {
+                    console.log(`Deleting ${duplicate.name} (ID: ${duplicate.id})...`);
+
+                    const { error: deleteError } = await window.supabaseClient
+                        .from('atores')
+                        .delete()
+                        .eq('id', duplicate.id);
+
+                    if (deleteError) {
+                        console.error(`Error deleting ${duplicate.name} (ID: ${duplicate.id}):`, deleteError);
+                        errors++;
+                    } else {
+                        console.log(`  -> Successfully deleted`);
+                        removed++;
+                    }
+                }
+
+                console.log(`Deletion complete: ${removed} removed, ${errors} errors`);
+
+                if (errors > 0) {
+                    showAlert(`${removed} duplicata(s) removida(s), mas ${errors} erro(s) ocorreram. Verifique o console.`, 'warning');
+                } else {
+                    showAlert(`${removed} duplicata(s) removida(s) com sucesso!`, 'success');
+                }
+
+                loadActors();
+
+            } catch (error) {
+                console.error('Error in removeDuplicates:', error);
+                showAlert(`Erro ao remover duplicatas: ${error.message}`, 'danger');
+            } finally {
+                const btn = document.getElementById('removeDuplicatesBtn');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-eraser-fill"></i> Remover Duplicatas';
+                }
+            }
+        }
+
+        // Initialize
+        loadActors();
+    </script>
+</body>
+
+</html>

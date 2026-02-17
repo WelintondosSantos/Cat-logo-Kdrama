@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migração Segura - K-Drama Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --primary: #667eea;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .log-container {
+            background: #1a1a2e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+
+        .log-info {
+            color: #3b82f6;
+        }
+
+        .log-success {
+            color: #10b981;
+        }
+
+        .log-warning {
+            color: #f59e0b;
+        }
+
+        .log-error {
+            color: #ef4444;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-migrate {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s;
+        }
+
+        .btn-migrate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-migrate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress {
+            height: 30px;
+            border-radius: 15px;
+            background: #e5e7eb;
+        }
+
+        .progress-bar {
+            border-radius: 15px;
+            background: linear-gradient(90deg, var(--success) 0%, #059669 100%);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h1 class="mb-0">
+                    <i class="bi bi-database-fill-up me-2"></i>
+                    Migração Segura de Dados
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">
+                    Importa dados dos arquivos JSON para o Supabase com verificação de duplicatas
+                </p>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Seguro:</strong> Esta ferramenta verifica duplicatas antes de inserir.
+                    Dramas existentes serão atualizados, novos serão inseridos.
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Atores</div>
+                    <div class="stat-value text-primary" id="actorsCount">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Dramas</div>
+                    <div class="stat-value text-success" id="dramasCount">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Novos</div>
+                    <div class="stat-value text-warning" id="insertCount">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Atualizados</div>
+                    <div class="stat-value text-info" id="updateCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold">Progresso</span>
+                    <span id="progressText">0%</span>
+                </div>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <button id="btnMigrate" class="btn btn-migrate btn-lg text-white">
+                    <i class="bi bi-play-circle-fill me-2"></i>
+                    Iniciar Migração
+                </button>
+            </div>
+        </div>
+
+        <!-- Log -->
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-terminal me-2"></i>
+                    Log de Operações
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="log" class="log-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
+    <script>
+        const log = (msg, type = 'info') => {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const colors = {
+                info: 'log-info',
+                success: 'log-success',
+                warning: 'log-warning',
+                error: 'log-error'
+            };
+            logEl.innerHTML += `<div class="${colors[type]}">[${time}] ${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        };
+
+        const updateProgress = (current, total) => {
+            const percent = Math.round((current / total) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressBar').textContent = percent + '%';
+            document.getElementById('progressText').textContent = percent + '%';
+        };
+
+        const updateStats = (stats) => {
+            if (stats.actors !== undefined) document.getElementById('actorsCount').textContent = stats.actors;
+            if (stats.dramas !== undefined) document.getElementById('dramasCount').textContent = stats.dramas;
+            if (stats.inserts !== undefined) document.getElementById('insertCount').textContent = stats.inserts;
+            if (stats.updates !== undefined) document.getElementById('updateCount').textContent = stats.updates;
+        };
+
+        document.getElementById('btnMigrate').addEventListener('click', async () => {
+            const btn = document.getElementById('btnMigrate');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Migrando...';
+
+            document.getElementById('log').innerHTML = '';
+            updateProgress(0, 100);
+            updateStats({ actors: 0, dramas: 0, inserts: 0, updates: 0 });
+
+            try {
+                log('🚀 Iniciando migração segura...', 'info');
+                log('📡 Conectando ao Supabase...', 'info');
+
+                const client = window.supabaseClient;
+                if (!client) throw new Error('Cliente Supabase não inicializado');
+
+                // ==============================================================
+                // MIGRAÇÃO DE ATORES
+                // ==============================================================
+                log('', 'info');
+                log('═══════════════════════════════════════', 'info');
+                log('📥 ETAPA 1: MIGRAÇÃO DE ATORES', 'info');
+                log('═══════════════════════════════════════', 'info');
+
+                const resAtores = await fetch('../atores.json');
+                const atores = await resAtores.json();
+                log(`✓ Arquivo carregado: ${atores.length} atores`, 'success');
+                updateStats({ actors: atores.length });
+
+                // Buscar atores existentes
+                const { data: existingActors } = await client.from('atores').select('id, name');
+                const actorMap = new Map((existingActors || []).map(a => [a.name.toLowerCase().trim(), a.id]));
+                log(`✓ Atores no banco: ${actorMap.size}`, 'info');
+
+                let actorsInserted = 0;
+                let actorsSkipped = 0;
+
+                for (let i = 0; i < atores.length; i++) {
+                    const actor = atores[i];
+                    const key = actor.name.toLowerCase().trim();
+
+                    if (actorMap.has(key)) {
+                        log(`  ⊘ Pulado: "${actor.name}" (já existe)`, 'warning');
+                        actorsSkipped++;
+                    } else {
+                        const { error } = await client.from('atores').insert([actor]);
+                        if (error) {
+                            log(`  ✗ Erro: "${actor.name}" - ${error.message}`, 'error');
+                        } else {
+                            log(`  ✓ Inserido: "${actor.name}"`, 'success');
+                            actorsInserted++;
+                        }
+                    }
+                    updateProgress(i + 1, atores.length + 10); // +10 para dramas
+                }
+
+                log(`✅ Atores: ${actorsInserted} inseridos, ${actorsSkipped} já existiam`, 'success');
+
+                // ==============================================================
+                // MIGRAÇÃO DE DRAMAS
+                // ==============================================================
+                log('', 'info');
+                log('═══════════════════════════════════════', 'info');
+                log('📥 ETAPA 2: MIGRAÇÃO DE DRAMAS', 'info');
+                log('═══════════════════════════════════════', 'info');
+
+                const resDramas = await fetch('../data/dramas.json');
+                const dramas = await resDramas.json();
+                log(`✓ Arquivo carregado: ${dramas.length} dramas`, 'success');
+                updateStats({ dramas: dramas.length });
+
+                // Buscar dramas existentes
+                const { data: existingDramas } = await client.from('dramas').select('id, title');
+                const dramaMap = new Map((existingDramas || []).map(d => [
+                    d.title.toLowerCase().replace(/[^a-z0-9]/g, ''),
+                    d.id
+                ]));
+                log(`✓ Dramas no banco: ${dramaMap.size}`, 'info');
+
+                let dramasInserted = 0;
+                let dramasUpdated = 0;
+
+                for (let i = 0; i < dramas.length; i++) {
+                    const drama = dramas[i];
+                    const searchKey = drama.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const existingId = dramaMap.get(searchKey);
+
+                    const payload = {
+                        title: drama.title,
+                        image: drama.image,
+                        genres: drama.genres || [],
+                        status: drama.status || null,
+                        ano: drama.ano || null,
+                        sinopse: drama.sinopse || null,
+                        elenco: drama.elenco || [],
+                        episodios: drama.episodios || 0
+                    };
+
+                    if (existingId) {
+                        // UPDATE
+                        const { error } = await client.from('dramas').update(payload).eq('id', existingId);
+                        if (error) {
+                            log(`  ✗ Erro ao atualizar: "${drama.title}" - ${error.message}`, 'error');
+                        } else {
+                            log(`  ↻ Atualizado: "${drama.title}"`, 'info');
+                            dramasUpdated++;
+                        }
+                    } else {
+                        // INSERT
+                        const { error } = await client.from('dramas').insert([payload]);
+                        if (error) {
+                            log(`  ✗ Erro ao inserir: "${drama.title}" - ${error.message}`, 'error');
+                        } else {
+                            log(`  ✓ Inserido: "${drama.title}"`, 'success');
+                            dramasInserted++;
+                        }
+                    }
+
+                    updateProgress(atores.length + i + 1, atores.length + dramas.length);
+                    updateStats({ inserts: dramasInserted, updates: dramasUpdated });
+                }
+
+                log(`✅ Dramas: ${dramasInserted} inseridos, ${dramasUpdated} atualizados`, 'success');
+
+                // ==============================================================
+                // RESUMO FINAL
+                // ==============================================================
+                log('', 'info');
+                log('═══════════════════════════════════════', 'success');
+                log('🎉 MIGRAÇÃO CONCLUÍDA COM SUCESSO!', 'success');
+                log('═══════════════════════════════════════', 'success');
+                log(`✓ Total de atores: ${actorsInserted + actorsSkipped}`, 'success');
+                log(`✓ Total de dramas: ${dramasInserted + dramasUpdated}`, 'success');
+                log(`✓ Novos registros: ${actorsInserted + dramasInserted}`, 'success');
+                log(`✓ Atualizados: ${dramasUpdated}`, 'success');
+                log('', 'success');
+                log('💡 Você pode fechar esta página e testar o site!', 'info');
+
+                updateProgress(100, 100);
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Concluído!';
+                btn.classList.remove('btn-migrate');
+                btn.classList.add('btn-success');
+
+            } catch (error) {
+                log(`⛔ ERRO FATAL: ${error.message}`, 'error');
+                console.error(error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-play-circle-fill me-2"></i>Tentar Novamente';
+            }
+        });
+
+        // Verificar conexão ao carregar
+        window.addEventListener('load', () => {
+            if (window.supabaseClient) {
+                log('✓ Cliente Supabase conectado', 'success');
+                log('✓ Pronto para migração', 'success');
+            } else {
+                log('✗ Cliente Supabase não encontrado!', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>
