@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Dramas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .drama-list-item {
+            cursor: pointer;
+        }
+
+        .drama-list-item:hover {
+            background-color: #495057;
+        }
+
+        .drama-list-item.active {
+            background-color: #0d6efd !important;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-white container-fluid py-4">
+    <div class="row h-100">
+        <!-- Sidebar: List of Dramas -->
+        <div class="col-md-4 col-lg-3 d-flex flex-column" style="height: 90vh;">
+            <div class="card bg-secondary text-white h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>🎬 Dramas</h4>
+                    <button class="btn btn-sm btn-success" onclick="createNew()">
+                        <i class="bi bi-plus-lg"></i> Novo
+                    </button>
+                </div>
+                <div class="card-body p-0 overflow-auto">
+                    <div class="p-2">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar drama...">
+                    </div>
+                    <div id="dramaList" class="list-group list-group-flush">
+                        <!-- Items rendered here -->
+                        <div class="p-3 text-center">Carregando...</div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small id="countDisplay">0 dramas</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Edit Form -->
+        <div class="col-md-8 col-lg-9">
+            <div class="card bg-secondary text-white h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 id="formTitle">✏️ Editar Drama</h2>
+                    <div>
+                        <button id="downloadJsonBtn" class="btn btn-warning" disabled>
+                            <i class="bi bi-download"></i> Baixar JSON
+                        </button>
+                        <a href="../index.html" class="btn btn-outline-light ms-2">Voltar ao Site</a>
+                    </div>
+                </div>
+                <div class="card-body overflow-auto">
+                    <div id="emptyState" class="text-center mt-5">
+                        <i class="bi bi-pencil-square display-1"></i>
+                        <p class="lead mt-3">Selecione um drama na lista ou clique em "Novo".</p>
+                    </div>
+
+                    <form id="editForm" style="display: none;">
+                        <input type="hidden" id="dramaId">
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Título</label>
+                                <input type="text" class="form-control" id="title" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Ano</label>
+                                <input type="number" class="form-control" id="ano">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nome da Imagem (sem extensão)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="image">
+                                    <span class="input-group-text">.webp</span>
+                                </div>
+                                <div class="mt-2">
+                                    <img id="imagePreview" src="" alt="Preview"
+                                        style="height: 100px; object-fit: cover; border-radius: 4px;">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="status">
+                                    <option value="Assistidos">Assistidos</option>
+                                    <option value="Assistindo">Assistindo</option>
+                                    <option value="Assistir em breve">Assistir em breve</option>
+                                    <option value="Terminar de assistir">Terminar de assistir</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Gêneros (separados por vírgula)</label>
+                            <input type="text" class="form-control" id="genres" placeholder="Ação, Romance, Comédia">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Elenco (separados por vírgula)</label>
+                            <input type="text" class="form-control" id="elenco" placeholder="Ator 1, Ator 2">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Episódios</label>
+                                <input type="number" class="form-control" id="episodios">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Sinopse</label>
+                            <textarea class="form-control" id="sinopse" rows="4"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-cloud-upload"></i> Salvar Alterações (Supabase & Local)
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
+    <script>
+        // DOM Elements
+        const dramaList = document.getElementById('dramaList');
+        const searchInput = document.getElementById('searchInput');
+        const countDisplay = document.getElementById('countDisplay');
+        const editForm = document.getElementById('editForm');
+        const emptyState = document.getElementById('emptyState');
+        const imagePreview = document.getElementById('imagePreview');
+        const downloadJsonBtn = document.getElementById('downloadJsonBtn');
+        const formTitle = document.getElementById('formTitle');
+
+        // State
+        let allDramas = [];
+        let localJsonData = [];
+        let selectedDrama = null;
+        let isCreating = false;
+
+        // --- Initialization ---
+        async function init() {
+            try {
+                const client = window.supabaseClient;
+                if (!client) throw new Error('Cliente Supabase não inicializado.');
+
+                // 1. Fetch Supabase Data
+                const { data: supaDramas, error } = await client
+                    .from('dramas')
+                    .select('*')
+                    .order('title');
+
+                if (error) throw error;
+
+                // 2. Fetch Local JSON
+                const response = await fetch('../data/dramas.json');
+                localJsonData = await response.json();
+
+                // 3. Merge Strategies
+                // We primarily trust Supabase for the ID and current state, 
+                // but we need to map back to JSON to execute the JSON download update.
+                const supaMap = new Map(supaDramas.map(d => [normalize(d.title), d]));
+                const jsonMap = new Map(localJsonData.map(d => [normalize(d.title), d]));
+
+                // Combine unique titles
+                const allTitles = new Set([...supaMap.keys(), ...jsonMap.keys()]);
+
+                allDramas = Array.from(allTitles).map(key => {
+                    const supa = supaMap.get(key);
+                    const json = jsonMap.get(key);
+
+                    // Prefer Supabase data if available, else JSON
+                    const d = supa || json;
+
+                    return {
+                        ...d,
+                        normalizedKey: key,
+                        inSupabase: !!supa,
+                        inJson: !!json,
+                        jsonDataRef: json // Reference to the object in the localJsonData array if it exists
+                    };
+                }).sort((a, b) => a.title.localeCompare(b.title));
+
+                renderList(allDramas);
+                downloadJsonBtn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao carregar dados: ' + err.message);
+            }
+        }
+
+        // --- Rendering ---
+        function renderList(dramas) {
+            dramaList.innerHTML = '';
+            countDisplay.textContent = `${dramas.length} dramas`;
+
+            dramas.forEach(drama => {
+                const item = document.createElement('a');
+                item.className = 'list-group-item list-group-item-action bg-dark text-white drama-list-item';
+                item.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${drama.title}</h6>
+                        <small>${drama.inSupabase ? '🟢' : '⚪'}</small>
+                    </div>
+                `;
+                item.onclick = () => selectDrama(drama, item);
+                dramaList.appendChild(item);
+            });
+        }
+
+        function createNew() {
+            isCreating = true;
+            selectedDrama = {}; // Empty object for new
+
+            // Clear selection
+            document.querySelectorAll('.drama-list-item').forEach(el => el.classList.remove('active'));
+
+            // Show form
+            emptyState.style.display = 'none';
+            editForm.style.display = 'block';
+            formTitle.textContent = '✨ Novo Drama';
+
+            // Clear Form
+            editForm.reset();
+            document.getElementById('dramaId').value = '';
+            imagePreview.src = '';
+        }
+
+        function selectDrama(drama, itemElement) {
+            isCreating = false;
+            selectedDrama = drama;
+
+            // Highlight active
+            document.querySelectorAll('.drama-list-item').forEach(el => el.classList.remove('active'));
+            itemElement.classList.add('active');
+
+            // Show form
+            emptyState.style.display = 'none';
+            editForm.style.display = 'block';
+            formTitle.textContent = '✏️ Editar Drama';
+
+            // Populate Form
+            document.getElementById('dramaId').value = drama.id || '';
+            document.getElementById('title').value = drama.title || '';
+            document.getElementById('ano').value = drama.ano || '';
+            document.getElementById('image').value = drama.image || '';
+            document.getElementById('status').value = drama.status || 'Assistidos';
+            document.getElementById('genres').value = (drama.genres || []).join(', ');
+            document.getElementById('elenco').value = (drama.elenco || []).join(', ');
+            document.getElementById('episodios').value = drama.episodios || 0;
+            document.getElementById('sinopse').value = drama.sinopse || '';
+
+            updateImagePreview();
+        }
+
+        function updateImagePreview() {
+            const imgName = document.getElementById('image').value;
+            if (imgName) {
+                imagePreview.src = `../assets/img/${imgName}.webp`;
+                imagePreview.onerror = () => imagePreview.src = 'https://placehold.co/100x150?text=Sem+Img';
+            } else {
+                imagePreview.src = '';
+            }
+        }
+
+        document.getElementById('image').addEventListener('input', updateImagePreview);
+
+        // --- Searching ---
+        searchInput.addEventListener('input', (e) => {
+            const term = normalize(e.target.value);
+            const filtered = allDramas.filter(d => d.normalizedKey.includes(term));
+            renderList(filtered);
+        });
+
+        // --- Helpers ---
+        function normalize(str) {
+            return (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        function parseArray(str) {
+            return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        }
+
+        // --- Saving ---
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                title: document.getElementById('title').value.trim(),
+                ano: parseInt(document.getElementById('ano').value) || null,
+                image: document.getElementById('image').value.trim(),
+                status: document.getElementById('status').value,
+                genres: parseArray(document.getElementById('genres').value),
+                elenco: parseArray(document.getElementById('elenco').value),
+                episodios: parseInt(document.getElementById('episodios').value) || null,
+                sinopse: document.getElementById('sinopse').value.trim()
+            };
+
+            const client = window.supabaseClient;
+
+            try {
+                // 1. Update Supabase
+                if (!isCreating && selectedDrama.id) {
+                    const { error } = await client
+                        .from('dramas')
+                        .update(formData)
+                        .eq('id', selectedDrama.id);
+
+                    if (error) throw error;
+                    alert('✅ Atualizado no Supabase!');
+                } else {
+                    // Create New
+                    const { data, error } = await client
+                        .from('dramas')
+                        .insert([formData])
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+
+                    // Assign new ID to selectedDrama (which was empty)
+                    selectedDrama.id = data.id;
+                    selectedDrama.inSupabase = true;
+                    // Also define normalized key for the list
+                    selectedDrama.normalizedKey = normalize(formData.title);
+
+                    alert('✅ Criado no Supabase!');
+                }
+
+                // 2. Update Local JSON Memory
+                // Use the normalized title from the form data as the key
+                const currentKey = normalize(formData.title);
+
+                const jsonIndex = localJsonData.findIndex(d => normalize(d.title) === currentKey);
+
+                if (jsonIndex !== -1) {
+                    // Update existing
+                    localJsonData[jsonIndex] = { ...localJsonData[jsonIndex], ...formData };
+                } else {
+                    // New entry in JSON
+                    localJsonData.push(formData);
+                }
+
+                // Update UI Model
+                Object.assign(selectedDrama, formData);
+
+                // If Creating, push to list
+                if (isCreating) {
+                    allDramas.push(selectedDrama);
+                    allDramas.sort((a, b) => a.title.localeCompare(b.title));
+                    isCreating = false; // exit create mode
+                }
+
+                // Re-render list
+                renderList(allDramas);
+
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao salvar: ' + err.message);
+            }
+        });
+
+        // --- Download ---
+        downloadJsonBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(localJsonData, null, 4);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "dramas.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Start
+        init();
+
+    </script>
+</body>
+
+</html>

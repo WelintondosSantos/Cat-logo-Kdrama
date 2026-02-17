@@ -9,112 +9,168 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="bg-light p-5">
-    <div class="container bg-white p-5 rounded shadow">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Admin: Fix Duplicates</h1>
-            <a href="index.html" class="btn btn-outline-secondary">Voltar ao Dashboard</a>
+<body class="bg-dark text-white container py-5">
+    <div class="card bg-secondary text-white">
+        <div class="card-header">
+            <h1>🛠️ Corrigir Duplicatas</h1>
         </div>
-        <p class="lead">This tool will scan your <code>dramas</code> table and remove duplicate entries based on the
-            <strong>Title</strong>. It keeps the entry with the lowest ID (oldest).
-        </p>
+        <div class="card-body">
+            <p class="card-text">
+                Esta ferramenta busca por títulos similares (ignorando espaços, maiúsculas e símbolos) e permite remover
+                as duplicatas.
+            </p>
 
-        <div class="mb-3">
-            <label class="form-label">Supabase Project URL</label>
-            <input type="text" id="supaUrl" class="form-control" value="https://qgvqhzptkgtbuxcxiiph.supabase.co">
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Supabase Anon Key</label>
-            <input type="text" id="supaKey" class="form-control" value="sb_publishable_vmeXKKSRI1cERYF47eiKAg_wp_NeEXa">
-        </div>
+            <button id="scanBtn" class="btn btn-primary w-100 mb-3">🔍 Escanear Banco de Dados</button>
 
-        <button class="btn btn-danger" onclick="startCleanup()">Find & Fix Duplicates</button>
+            <div id="resultsArea" style="display: none;">
+                <div class="alert alert-info" id="statusMsg"></div>
+                <button id="fixAllBtn" class="btn btn-danger w-100 mb-3" style="display: none;">
+                    🚀 Corrigir Todas (Manter a mais antiga)
+                </button>
+                <div id="duplicateList" class="list-group text-dark"></div>
+            </div>
 
-        <div class="mt-4">
-            <h5>Log:</h5>
-            <pre id="log" class="bg-dark text-light p-3 rounded" style="height: 400px; overflow-y: scroll;"></pre>
+            <div class="mt-3">
+                <h5>Log:</h5>
+                <pre id="log" class="bg-black text-success p-3 rounded"
+                    style="height: 200px; overflow-y: scroll;"></pre>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
     <script>
+        const logEl = document.getElementById('log');
+        const resultsArea = document.getElementById('resultsArea');
+        const statusMsg = document.getElementById('statusMsg');
+        const duplicateList = document.getElementById('duplicateList');
+        const fixAllBtn = document.getElementById('fixAllBtn');
+
+        let duplicateGroups = [];
+
         function log(msg) {
-            const logEl = document.getElementById('log');
-            logEl.innerHTML += `<div>${new Date().toLocaleTimeString()} - ${msg}</div>`;
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `[${time}] ${msg}\n`;
             logEl.scrollTop = logEl.scrollHeight;
         }
 
-        async function startCleanup() {
-            const url = document.getElementById('supaUrl').value.trim();
-            const key = document.getElementById('supaKey').value.trim();
+        // Helper to remove special chars for comparison
+        function normalizeTitle(title) {
+            return title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
 
-            if (!url || !key) {
-                alert('Please enter URL and Key');
-                return;
-            }
-
-            const supabase = window.supabase.createClient(url, key);
-            log('Starting cleanup...');
+        document.getElementById('scanBtn').addEventListener('click', async () => {
+            log('Iniciando escaneamento...');
+            resultsArea.style.display = 'block';
+            statusMsg.textContent = 'Buscando dramas...';
+            statusMsg.className = 'alert alert-info';
+            duplicateList.innerHTML = '';
+            fixAllBtn.style.display = 'none';
+            duplicateGroups = [];
 
             try {
-                // 1. Fetch all dramas (just id and title to save bandwidth)
-                log('Fetching all dramas...');
-                const { data: dramas, error } = await supabase
+                const client = window.supabaseClient;
+                if (!client) throw new Error('Supabase client not initialized');
+
+                const { data: dramas, error } = await client
                     .from('dramas')
-                    .select('id, title')
-                    .order('id', { ascending: true });
+                    .select('id, title') // Fetch id to decide which to keep
+                    .order('id', { ascending: true }); // Oldest first
 
-                if (error) {
-                    log('Error fetching dramas: ' + error.message);
-                    return;
-                }
+                if (error) throw error;
 
-                log(`Fetched ${dramas.length} rows.`);
+                log(`Total de dramas encontrados: ${dramas.length}`);
 
-                // 2. Identify Duplicates
-                const uniqueTitles = new Set();
-                const duplicatesToDelete = [];
+                // Grouping Logic
+                const groups = {};
+                dramas.forEach(d => {
+                    const key = normalizeTitle(d.title);
+                    if (!groups[key]) groups[key] = [];
+                    groups[key].push(d);
+                });
 
-                // Since we ordered by ID ascending, the first time we see a title, it's the oldest (keep it).
-                // Any subsequent encounter of the same title is a duplicate (delete it).
-                dramas.forEach(drama => {
-                    const normalizedTitle = drama.title.trim().toLowerCase(); // Normalize to catch case-sensitive dupes if needed
-
-                    if (uniqueTitles.has(normalizedTitle)) {
-                        duplicatesToDelete.push(drama);
-                    } else {
-                        uniqueTitles.add(normalizedTitle);
+                // Filter groups with > 1 item
+                Object.keys(groups).forEach(key => {
+                    if (groups[key].length > 1) {
+                        duplicateGroups.push(groups[key]);
                     }
                 });
 
-                if (duplicatesToDelete.length === 0) {
-                    log('✅ No duplicates found! Your database is clean.');
-                    return;
+                if (duplicateGroups.length === 0) {
+                    statusMsg.textContent = '✅ Nenhuma duplicata encontrada!';
+                    statusMsg.className = 'alert alert-success';
+                    log('O banco está limpo.');
+                } else {
+                    statusMsg.textContent = `⚠️ Encontrados ${duplicateGroups.length} grupos de duplicatas.`;
+                    statusMsg.className = 'alert alert-warning';
+                    renderDuplicates();
+                    fixAllBtn.style.display = 'block';
                 }
 
-                log(`⚠️ Found ${duplicatesToDelete.length} duplicate entries.`);
-                log('Deleting duplicates...');
+            } catch (err) {
+                log('Erro: ' + err.message);
+                console.error(err);
+            }
+        });
 
-                // 3. Delete Duplicates
-                // Delete in batches to be safe
-                const idsToDelete = duplicatesToDelete.map(d => d.id);
+        function renderDuplicates() {
+            duplicateList.innerHTML = '';
+            duplicateGroups.forEach((group, index) => {
+                const keep = group[0]; // First one (oldest due to sort)
+                const remove = group.slice(1);
 
-                const { error: deleteError } = await supabase
+                const item = document.createElement('div');
+                item.className = 'list-group-item';
+                item.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Grupo ${index + 1}: "${keep.title}"</h5>
+                        <small>${group.length} ocorrências</small>
+                    </div>
+                    <p class="mb-1 text-success">Manter: ${keep.title} (ID: ${keep.id})</p>
+                    ${remove.map(d => `<p class="mb-1 text-danger">Remover: ${d.title} (ID: ${d.id})</p>`).join('')}
+                `;
+                duplicateList.appendChild(item);
+            });
+        }
+
+        fixAllBtn.addEventListener('click', async () => {
+            if (!confirm('Você tem certeza? Isso apatará permanentemente as duplicatas listadas.')) return;
+
+            fixAllBtn.disabled = true;
+            log('Iniciando limpeza...');
+
+            const idsToDelete = [];
+            duplicateGroups.forEach(group => {
+                // Keep the first one, delete the rest
+                const remove = group.slice(1);
+                remove.forEach(r => idsToDelete.push(r.id));
+            });
+
+            log(`Dramas para deletar: ${idsToDelete.length}`);
+
+            try {
+                const client = window.supabaseClient;
+
+                // Delete in chunks of 20 to avoid URL limits if using REST, though Supabase client handles body well.
+                const { error } = await client
                     .from('dramas')
                     .delete()
                     .in('id', idsToDelete);
 
-                if (deleteError) {
-                    log('Error deleting duplicates: ' + deleteError.message);
-                } else {
-                    log(`✅ Successfully deleted ${idsToDelete.length} duplicates.`);
-                    log('List of deleted IDs: ' + idsToDelete.join(', '));
-                }
+                if (error) throw error;
 
-            } catch (e) {
-                log('Unexpected error: ' + e.message);
-                console.error(e);
+                log('✅ Limpeza concluída com sucesso!');
+                alert('Limpeza concluída! Atualizando lista...');
+
+                // Rescan
+                document.getElementById('scanBtn').click();
+
+            } catch (err) {
+                log('❌ Erro ao deletar: ' + err.message);
+                fixAllBtn.disabled = false;
             }
-        }
+        });
     </script>
 </body>
 

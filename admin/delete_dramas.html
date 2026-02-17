@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar/Deletar Dramas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body class="bg-dark text-white container py-5">
+    <div class="card bg-secondary text-white">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h1>Gerenciar Dramas</h1>
+            <button id="saveJsonBtn" class="btn btn-success" disabled>
+                <i class="bi bi-download"></i> Baixar JSON Atualizado
+            </button>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                Use esta ferramenta para remover dramas do banco de dados e do arquivo JSON.<br>
+                1. Delete os itens desejados.<br>
+                2. Clique em "Baixar JSON Atualizado".<br>
+                3. Substitua o arquivo <code>data/dramas.json</code> pelo arquivo baixado.
+            </p>
+
+            <div class="mb-3">
+                <input type="text" id="searchInput" class="form-control" placeholder="Buscar por título...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>Capa</th>
+                            <th>Título</th>
+                            <th>Status (Supa)</th>
+                            <th>Status (JSON)</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dramasTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supa-client.js"></script>
+    <script>
+        const tableBody = document.getElementById('dramasTableBody');
+        const saveJsonBtn = document.getElementById('saveJsonBtn');
+        const searchInput = document.getElementById('searchInput');
+
+        let allDramas = []; // Array to hold merged drama data
+        let localJsonData = []; // Original JSON data
+
+        async function init() {
+            try {
+                // 1. Fetch Supabase Data
+                const client = window.supabaseClient;
+                if (!client) throw new Error('Cliente Supabase não inicializado.');
+
+                const { data: supaDramas, error } = await client
+                    .from('dramas')
+                    .select('*')
+                    .order('title');
+
+                if (error) throw error;
+
+                // 2. Fetch Local JSON Data
+                const response = await fetch('../data/dramas.json');
+                localJsonData = await response.json();
+
+                // 3. Merge Data for Display
+                // map Supabase ID to data for easy lookup
+                const supaMap = new Map(supaDramas.map(d => [d.title.trim().toLowerCase(), d]));
+                const jsonMap = new Map(localJsonData.map(d => [d.title.trim().toLowerCase(), d]));
+
+                // Get all unique titles
+                const allTitles = new Set([...supaMap.keys(), ...jsonMap.keys()]);
+
+                allDramas = Array.from(allTitles).map(normalizedTitle => {
+                    const supaItem = supaMap.get(normalizedTitle);
+                    const jsonItem = jsonMap.get(normalizedTitle);
+
+                    // Prefer title from Supabase, then JSON
+                    const displayTitle = supaItem?.title || jsonItem?.title;
+                    const image = supaItem?.image || jsonItem?.image;
+
+                    return {
+                        normalizedTitle,
+                        displayTitle,
+                        image,
+                        supaId: supaItem?.id, // ID if exists in Supabase
+                        inJson: !!jsonItem,    // Boolean if exists in JSON
+                        jsonData: jsonItem     // Complete JSON object for saving
+                    };
+                }).sort((a, b) => a.displayTitle.localeCompare(b.displayTitle));
+
+                renderTable(allDramas);
+                saveJsonBtn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-danger">Erro: ${err.message}</td></tr>`;
+            }
+        }
+
+        function renderTable(dramas) {
+            tableBody.innerHTML = '';
+            dramas.forEach((drama, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <img src="../assets/img/${drama.image}.webp" 
+                             alt="capa" 
+                             style="width: 50px; height: 75px; object-fit: cover;"
+                             onerror="this.src='https://placehold.co/50x75?text=Sem+Img'">
+                    </td>
+                    <td>${drama.displayTitle}</td>
+                    <td>${drama.supaId ? '<span class="badge bg-success">Sim</span>' : '<span class="badge bg-secondary">Não</span>'}</td>
+                    <td>${drama.inJson ? '<span class="badge bg-success">Sim</span>' : '<span class="badge bg-secondary">Não</span>'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDrama('${drama.normalizedTitle}')">
+                            <i class="bi bi-trash"></i> Deletar
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        window.deleteDrama = async (normalizedTitle) => {
+            if (!confirm(`Tem certeza que deseja deletar "${normalizedTitle}"?`)) return;
+
+            const dramaIndex = allDramas.findIndex(d => d.normalizedTitle === normalizedTitle);
+            if (dramaIndex === -1) return;
+            const drama = allDramas[dramaIndex];
+
+            try {
+                // 1. Delete from Supabase if exists
+                if (drama.supaId) {
+                    const client = window.supabaseClient;
+                    const { error } = await client
+                        .from('dramas')
+                        .delete()
+                        .eq('id', drama.supaId);
+
+                    if (error) throw error;
+                }
+
+                // 2. Remove from local tracking arrays
+                // Update localJsonData array for the "Save" button
+                if (drama.inJson) {
+                    localJsonData = localJsonData.filter(d => d.title.trim().toLowerCase() !== normalizedTitle);
+                }
+
+                // Update UI array
+                allDramas.splice(dramaIndex, 1);
+                renderTable(allDramas.filter(d => d.displayTitle.toLowerCase().includes(searchInput.value.toLowerCase())));
+
+                alert('Drama removido! Não esqueça de baixar o JSON atualizado ao final.');
+
+            } catch (err) {
+                alert(`Erro ao deletar: ${err.message}`);
+                console.error(err);
+            }
+        };
+
+        // Search Filter
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allDramas.filter(d => d.displayTitle.toLowerCase().includes(term));
+            renderTable(filtered);
+        });
+
+        // Save JSON
+        saveJsonBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(localJsonData, null, 4);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "dramas.json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

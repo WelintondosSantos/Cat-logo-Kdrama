@@ -73,7 +73,24 @@
                 const client = window.supabaseClient;
                 if (!client) throw new Error('Cliente Supabase não inicializado (verifique supa-client.js)');
 
-                // 2. Processar cada drama
+                // 2. Pré-carregar dados do Supabase para evitar duplicatas e N+1 queries
+                updateStatus('Baixando lista atual do Supabase...');
+                const { data: existingDramasRaw, error: fetchError } = await client
+                    .from('dramas')
+                    .select('id, title');
+
+                if (fetchError) throw new Error('Erro ao buscar dramas existentes: ' + fetchError.message);
+
+                // Mapa: Chave Normalizada -> ID
+                const existingMap = new Map();
+                existingDramasRaw.forEach(d => {
+                    const key = d.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    existingMap.set(key, d.id);
+                });
+
+                log(`📋 Base atual: ${existingDramasRaw.length} dramas no banco.`);
+
+                // 3. Processar
                 let added = 0;
                 let updated = 0;
                 let errors = 0;
@@ -84,38 +101,29 @@
                     const drama = dramas[i];
                     const percent = Math.round(((i + 1) / dramas.length) * 100);
 
-                    // Normalizar dados para o formato do banco
+                    // Normalizar título do JSON para busca
+                    const searchKey = drama.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                    // Payload
                     const dramaPayload = {
                         title: drama.title,
                         image: drama.image,
                         genres: drama.genres,
-                        status: drama.status || null, // Salva o status, mas lembre-se que o user_library tem precedência na UI
+                        status: drama.status || null,
                         ano: drama.ano || null,
                         sinopse: drama.sinopse || null,
                         elenco: drama.elenco || [],
                         episodios: drama.episodios || null
                     };
 
-                    // Tentar encontrar pelo Título exato
-                    const { data: existing, error: findError } = await client
-                        .from('dramas')
-                        .select('id')
-                        .ilike('title', drama.title.trim()) // Case-insensitive check
-                        .maybeSingle();
+                    const existingId = existingMap.get(searchKey);
 
-                    if (findError) {
-                        log(`❌ Erro ao buscar "${drama.title}": ${findError.message}`);
-                        errors++;
-                        continue;
-                    }
-
-                    if (existing) {
+                    if (existingId) {
                         // UPDATE
-                        // log(`🔄 Atualizando: "${drama.title}" (ID: ${existing.id})`);
                         const { error: updateError } = await client
                             .from('dramas')
                             .update(dramaPayload)
-                            .eq('id', existing.id);
+                            .eq('id', existingId);
 
                         if (updateError) {
                             log(`❌ Falha ao atualizar "${drama.title}": ${updateError.message}`);
@@ -125,20 +133,24 @@
                         }
                     } else {
                         // INSERT
-                        log(`✨ Criando NOVO: "${drama.title}"`);
-                        const { error: insertError } = await client
+                        log(`✨ Novo: "${drama.title}"`);
+                        const { data: newDrama, error: insertError } = await client
                             .from('dramas')
-                            .insert([dramaPayload]);
+                            .insert([dramaPayload])
+                            .select('id')
+                            .single();
 
                         if (insertError) {
                             log(`❌ Falha ao inserir "${drama.title}": ${insertError.message}`);
                             errors++;
                         } else {
                             added++;
+                            // Atualizar mapa para evitar duplicatas no mesmo lote
+                            if (newDrama) existingMap.set(searchKey, newDrama.id);
                         }
                     }
 
-                    // Atualizar status visual a cada 10 itens para performance
+                    // Atualizar UI a cada 10 items
                     if (i % 10 === 0) updateStatus(`Processando... ${percent}%`);
                 }
 
