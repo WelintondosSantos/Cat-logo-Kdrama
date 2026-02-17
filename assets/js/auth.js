@@ -35,6 +35,28 @@ const AuthManager = {
             loginBtn.classList.add('d-none');
             userMenu.classList.remove('d-none');
             userEmail.textContent = this.user.email;
+
+            // Admin Logic
+            const existingAdminBtn = document.getElementById('adminBtn');
+            if (existingAdminBtn) existingAdminBtn.remove(); // Prevent duplicates
+
+            if (this.user.email === 'welintonsilva707@gmail.com') {
+                const logoutBtnLi = document.getElementById('logoutBtn').parentElement;
+                const adminLi = document.createElement('li');
+                adminLi.innerHTML = `
+                    <a class="dropdown-item text-primary fw-bold" href="admin/index.html" id="adminBtn">
+                        <i class="bi bi-tools me-2"></i>Admin Tools
+                    </a>
+                `;
+                // Insert before logout
+                logoutBtnLi.parentElement.insertBefore(adminLi, logoutBtnLi);
+
+                // Add separator
+                const sep = document.createElement('li');
+                sep.innerHTML = '<hr class="dropdown-divider">';
+                logoutBtnLi.parentElement.insertBefore(sep, logoutBtnLi);
+            }
+
         } else {
             loginBtn.classList.remove('d-none');
             userMenu.classList.add('d-none');
