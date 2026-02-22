@@ -814,3 +814,68 @@
 [data-bs-theme="dark"] .navbar-nav .nav-link:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
+
+/* Modern Pagination */
+.pagination-modern .page-item {
+    margin: 0 4px;
+}
+
+.pagination-modern .page-link {
+    border: none;
+    border-radius: 50%; /* Circle */
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #4b5563;
+    background-color: #f8fafc;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    text-decoration: none;
+}
+
+.pagination-modern .page-link:hover {
+    background-color: #e2e8f0;
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+.pagination-modern .page-item.active .page-link {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    transform: scale(1.05);
+}
+
+.pagination-modern .page-item.disabled .page-link {
+    background-color: transparent;
+    color: #cbd5e1;
+    box-shadow: none;
+    cursor: default;
+    transform: none;
+}
+
+/* Dark Mode Pagination */
+[data-bs-theme="dark"] .pagination-modern .page-link {
+    background-color: #1e293b;
+    color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .pagination-modern .page-link:hover {
+    background-color: #334155;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .pagination-modern .page-item.active .page-link {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+[data-bs-theme="dark"] .pagination-modern .page-item.disabled .page-link {
+    color: #475569;
+    background-color: transparent;
+}

@@ -3,6 +3,7 @@ const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = 3000;
@@ -86,6 +87,37 @@ app.post('/api/save-json', (req, res) => {
             return res.status(500).json({ error: 'Failed to save JSON file' });
         }
         res.json({ message: 'JSON file saved successfully' });
+    });
+});
+
+// 5. Convert Images (Run Python Script)
+app.post('/api/convert-images', (req, res) => {
+    const scriptPath = path.join(__dirname, '../scripts/optimize_images.py');
+    // Using a simple command for now. In a real env, you might want to stream output
+    // or use a more robust way to find the python executable.
+    const command = `python "${scriptPath}"`;
+
+    console.log(`Executing: ${command}`);
+
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            // It might fail if python is not in PATH or script has errors
+            return res.status(500).json({
+                error: 'Failed to execute conversion script',
+                details: error.message,
+                stderr: stderr
+            });
+        }
+
+        console.log(`stdout: ${stdout}`);
+        console.error(`stderr: ${stderr}`);
+
+        res.json({
+            message: 'Conversion completed successfully',
+            stdout: stdout,
+            stderr: stderr
+        });
     });
 });
 

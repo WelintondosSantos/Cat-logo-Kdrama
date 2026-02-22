@@ -11,87 +11,131 @@ function getDramaImage(imageName) {
 
 // Gerenciador de Dados do Usuário (Cloud + LocalStorage)
 class UserDataManager {
+  static _loading = false;
+  static cloudData = {};
+  static localStatus = {};
+  static localFavorites = [];
+  static _dataLoaded = false;
+
   static async loadData() {
-    try {
-      this.localStatus = JSON.parse(localStorage.getItem('userDramaStatus') || '{}');
-    } catch (e) {
-      console.warn('Corrupted local status, resetting.', e);
-      this.localStatus = {};
+    // Prevent concurrent loads (race condition guard)
+    if (this._loading) {
+      console.log('UserDataManager: loadData already in progress, skipping.');
+      return;
     }
+    this._loading = true;
 
     try {
-      this.localFavorites = JSON.parse(localStorage.getItem('favoriteDramas') || '[]');
-    } catch (e) {
-      console.warn('Corrupted local favorites, resetting.', e);
-      this.localFavorites = [];
-    }
+      try {
+        this.localStatus = JSON.parse(localStorage.getItem('userDramaStatus') || '{}');
+      } catch (e) {
+        console.warn('Corrupted local status, resetting.', e);
+        this.localStatus = {};
+      }
 
-    this.cloudData = {}; // Map: dramaId -> { status, is_favorite }
+      try {
+        this.localFavorites = JSON.parse(localStorage.getItem('favoriteDramas') || '[]');
+      } catch (e) {
+        console.warn('Corrupted local favorites, resetting.', e);
+        this.localFavorites = [];
+      }
 
-    if (AuthManager && AuthManager.user) {
-      await this.syncWithCloud();
+      if (AuthManager && AuthManager.user) {
+        await this.syncWithCloud();
+      } else {
+        this.cloudData = {};
+      }
+
+      this._dataLoaded = true;
+    } finally {
+      this._loading = false;
     }
   }
 
   static async syncWithCloud() {
-    // Fetch all user data from Supabase
+    if (!AuthManager || !AuthManager.user) {
+      console.warn('syncWithCloud called without user, skipping.');
+      return;
+    }
+
+    const userId = AuthManager.user.id;
+
+    // Fetch user data from Supabase with explicit user_id filter
     const { data, error } = await window.supabaseClient
       .from('user_library')
-      .select('drama_id, status, is_favorite');
+      .select('drama_id, status, is_favorite')
+      .eq('user_id', userId);
 
     if (error) {
       console.error('Error fetching user library:', error);
       return;
     }
 
-    this.cloudData = {};
+    const newCloudData = {};
     if (data) {
+      console.log(`UserDataManager: Loaded ${data.length} items from cloud.`);
       data.forEach(item => {
-        this.cloudData[item.drama_id] = {
+        // Ensure drama_id matches key type (usually number for identity columns)
+        newCloudData[item.drama_id] = {
           status: item.status,
           is_favorite: item.is_favorite
         };
       });
     }
+    // Only assign after successful fetch (don't reset to {} before async call)
+    this.cloudData = newCloudData;
   }
 
   static getStatus(drama) {
+    if (!drama) return null;
     if (AuthManager && AuthManager.user) {
       const item = this.cloudData[drama.id];
-      return item ? item.status : null;
+      return item ? (item.status || null) : null;
     }
     return this.localStatus[drama.title] || null;
   }
 
   static isFavorite(drama) {
+    if (!drama) return false;
     if (AuthManager && AuthManager.user) {
       const item = this.cloudData[drama.id];
-      return item ? item.is_favorite : false;
+      return item ? !!item.is_favorite : false;
     }
     return this.localFavorites.includes(drama.title);
   }
 
   static async setStatus(drama, status) {
+    // Treat empty string as null (for "Remove Status")
+    const normalizedStatus = status || null;
+
     if (AuthManager && AuthManager.user) {
       // Cloud Save
       // Optimistic update
       if (!this.cloudData[drama.id]) this.cloudData[drama.id] = {};
-      this.cloudData[drama.id].status = status;
+      this.cloudData[drama.id].status = normalizedStatus;
+
+      // Preserve existing is_favorite when upserting
+      const currentFav = this.cloudData[drama.id].is_favorite || false;
 
       const { error } = await window.supabaseClient
         .from('user_library')
         .upsert({
           user_id: AuthManager.user.id,
           drama_id: drama.id,
-          status: status
-        }, { onConflict: 'user_id, drama_id' }); // Upsert handles insert/update
+          status: normalizedStatus,
+          is_favorite: currentFav
+        }, { onConflict: 'user_id, drama_id' });
 
-      if (error) console.error("Cloud save error:", error);
+      if (error) {
+        console.error("Cloud save error:", error);
+        // Revert optimistic update on error
+        await this.syncWithCloud();
+      }
 
     } else {
       // Local Save
-      if (status) {
-        this.localStatus[drama.title] = status;
+      if (normalizedStatus) {
+        this.localStatus[drama.title] = normalizedStatus;
       } else {
         delete this.localStatus[drama.title];
       }
@@ -109,15 +153,23 @@ class UserDataManager {
       if (!this.cloudData[drama.id]) this.cloudData[drama.id] = {};
       this.cloudData[drama.id].is_favorite = newFav;
 
+      // Preserve existing status when upserting
+      const currentStatus = this.cloudData[drama.id].status || null;
+
       const { error } = await window.supabaseClient
         .from('user_library')
         .upsert({
           user_id: AuthManager.user.id,
           drama_id: drama.id,
-          is_favorite: newFav
+          is_favorite: newFav,
+          status: currentStatus
         }, { onConflict: 'user_id, drama_id' });
 
-      if (error) console.error("Cloud fav error:", error);
+      if (error) {
+        console.error("Cloud fav error:", error);
+        // Revert optimistic update on error
+        await this.syncWithCloud();
+      }
       return newFav;
 
     } else {
@@ -435,7 +487,7 @@ class DramaManager {
     });
   }
 
-  // Renderiza os controles de paginação
+  // Renderiza os controles de paginação modernos
   renderPagination(totalItems) {
     // Remove a paginação anterior, se existir
     const existingPagination = document.getElementById('pagination');
@@ -444,45 +496,100 @@ class DramaManager {
     }
 
     const totalPages = Math.ceil(totalItems / this.itemsPerPage);
-    if (totalPages <= 1) return; // Não exibe a paginação se houver somente uma página
+    if (totalPages <= 1) return; // Não exibe se tiver só 1 página
 
-    const paginationContainer = document.createElement('div');
-    paginationContainer.id = 'pagination';
-    paginationContainer.className = 'pagination-container mt-4 d-flex justify-content-center';
+    const nav = document.createElement('nav');
+    nav.id = 'pagination';
+    nav.setAttribute('aria-label', 'Navegação de página');
+    nav.className = 'mt-5 d-flex justify-content-center';
 
-    // Botão "Anterior"
-    const prevButton = document.createElement('button');
-    prevButton.textContent = 'Anterior';
-    prevButton.className = 'btn btn-outline-primary me-2';
-    prevButton.disabled = this.currentPage === 1;
-    prevButton.addEventListener('click', () => {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-        this.updateFilters();
+    const ul = document.createElement('ul');
+    ul.className = 'pagination pagination-modern mb-0';
+
+    // Helper para criar item de paginação
+    const createItem = (page, content, isActive = false, isDisabled = false) => {
+      const li = document.createElement('li');
+      li.className = `page-item ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`;
+
+      const a = document.createElement('a');
+      a.className = 'page-link';
+      a.href = '#';
+      a.innerHTML = content;
+
+      if (!isDisabled && !isActive && page !== null) {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.currentPage = page;
+          this.updateFilters();
+          // Scroll suave para o topo do grid
+          const grid = document.getElementById('dramaGrid');
+          if (grid) {
+            const offsetTop = grid.offsetTop - 100;
+            window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+          }
+        });
       }
-    });
-    paginationContainer.appendChild(prevButton);
 
-    // Informação da página atual
-    const pageInfo = document.createElement('span');
-    pageInfo.textContent = `Página ${this.currentPage} de ${totalPages}`;
-    paginationContainer.appendChild(pageInfo);
+      li.appendChild(a);
+      ul.appendChild(li);
+    };
 
-    // Botão "Próximo"
-    const nextButton = document.createElement('button');
-    nextButton.textContent = 'Próximo';
-    nextButton.className = 'btn btn-outline-primary ms-2';
-    nextButton.disabled = this.currentPage === totalPages;
-    nextButton.addEventListener('click', () => {
-      if (this.currentPage < totalPages) {
-        this.currentPage++;
-        this.updateFilters();
+    // Botão Anterior
+    createItem(this.currentPage - 1, '<i class="bi bi-chevron-left"></i>', false, this.currentPage === 1);
+
+    // Lógica para números de página (exibe janela deslizante)
+    const maxVisible = 5; // Quantidade de números visíveis
+    let startPage, endPage;
+
+    if (totalPages <= maxVisible) {
+      startPage = 1;
+      endPage = totalPages;
+    } else {
+      if (this.currentPage <= 3) {
+        startPage = 1;
+        endPage = maxVisible; // 1 2 3 4 5
+      } else if (this.currentPage + 2 >= totalPages) {
+        startPage = totalPages - 4;
+        endPage = totalPages; // ... 6 7 8 9 10
+      } else {
+        startPage = this.currentPage - 2;
+        endPage = this.currentPage + 2; // ... 4 5 6 7 8 ...
       }
-    });
-    paginationContainer.appendChild(nextButton);
+    }
 
-    // Insere a paginação após o container de dramas
-    this.container.parentNode.insertBefore(paginationContainer, this.container.nextSibling);
+    // Primeira página e reticências iniciais
+    if (startPage > 1) {
+      createItem(1, '1');
+      if (startPage > 2) createItem(null, '...', false, true);
+    }
+
+    // Páginas do meio
+    for (let i = startPage; i <= endPage; i++) {
+      createItem(i, i, i === this.currentPage);
+    }
+
+    // Reticências finais e última página
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) createItem(null, '...', false, true);
+      createItem(totalPages, totalPages);
+    }
+
+    // Botão Próximo
+    createItem(this.currentPage + 1, '<i class="bi bi-chevron-right"></i>', false, this.currentPage === totalPages);
+
+    nav.appendChild(ul);
+
+    // Insere a paginação no local correto
+    if (document.body.id === 'profile-page') {
+      // No perfil, insere no final do conteúdo principal (dentro de <main>)
+      const main = document.querySelector('main');
+      if (main) {
+        main.appendChild(nav);
+      }
+    } else {
+      // Na home, insere após o grid de dramas
+      this.container.parentNode.insertBefore(nav, this.container.nextSibling);
+    }
   }
 
   updateFilters() {
@@ -517,9 +624,15 @@ class DramaManager {
   }
 
   init() {
-    // Insere o filtro acima do container de dramas
-    this.container.parentNode.insertBefore(this.createGenreFilter(), this.container);
     this.setupSearch();
+
+    // Check if we are on the profile page (don't render filters there)
+    if (document.body.id !== 'profile-page') {
+      const filterContainer = this.createGenreFilter();
+      // Insere os filtros antes do grid de dramas
+      this.container.parentNode.insertBefore(filterContainer, this.container);
+    }
+
     this.updateFilters();
   }
 }
@@ -540,29 +653,21 @@ class ProfileManager {
   async init() {
     console.log("ProfileManager init...", this.dramas.length, "dramas");
 
-    // Setup listener first in case auth happens immediately after check
-    const authHandler = async (e) => {
-      if (e.detail.user) {
-        console.log("Auth event detected, loading profile...");
-        await this.loadAndRender();
-      } else {
-        console.log("Auth logout detected");
-        window.location.href = 'index.html';
-      }
-    };
-    document.addEventListener('auth:stateChanged', authHandler);
+    // Note: auth:stateChanged is handled centrally in initApp()
+    // ProfileManager just renders when called — no separate listener needed.
 
-    // Initial check
-    if (AuthManager.user) {
-      console.log("User already logged in, loading...");
-      await this.loadAndRender();
+    // Initial render if data is already loaded
+    if (UserDataManager._dataLoaded) {
+      console.log("Data already loaded, rendering profile immediately.");
+      this.renderProfile();
     } else {
-      console.log("Waiting for auth...");
-      // Fallback timeout
+      console.log("Waiting for data load (will be triggered by initApp auth handler)...");
+      // Show spinners until data is loaded — initApp will call renderProfile
+      // Fallback timeout in case something goes wrong
       setTimeout(() => {
         const favGrid = document.getElementById('favoritesGrid');
-        if (!AuthManager.user && favGrid && favGrid.innerHTML.includes('spinner')) {
-          console.warn("Auth timeout");
+        if (!UserDataManager._dataLoaded && favGrid && favGrid.innerHTML.includes('spinner')) {
+          console.warn("Profile data timeout");
           favGrid.innerHTML = `
             <div class="alert alert-warning">
                 Tempo de carregamento excedido. <a href="index.html" class="alert-link">Tente fazer login novamente</a> ou verifique sua conexão.
@@ -574,17 +679,7 @@ class ProfileManager {
             if (el) el.innerHTML = '';
           });
         }
-      }, 8000); // 8 seconds timeout
-    }
-  }
-
-  async loadAndRender() {
-    try {
-      await UserDataManager.loadData();
-      this.renderProfile();
-    } catch (e) {
-      console.error("Profile render error:", e);
-      this.favContainer.innerHTML = '<p class="text-danger">Erro ao carregar dados.</p>';
+      }, 10000);
     }
   }
 
@@ -908,10 +1003,51 @@ class ReviewManager {
 
 // Carrega os dados do Supabase e inicializa o DramaManager
 async function initApp() {
-  try {
-    // SUBSTITUIÇÃO: Fetch do Supabase em vez de 'dramas.json'
-    // fetch('dramas.json')...
+  // === Step 1: Register auth listener BEFORE any async work ===
+  // This is critical because AuthManager.init() runs on DOMContentLoaded,
+  // which can fire while we're awaiting the dramas query below.
+  // If we register the listener after the await, we miss the initial auth event.
+  let pendingAuthEvent = null;
+  let appReady = false;
+  let dramaManager = null;
+  let profileManager = null;
 
+  const handleAuthChange = async (e) => {
+    const user = e.detail ? e.detail.user : null;
+    console.log('auth:stateChanged fired. User:', user ? user.email : 'null', 'App ready:', appReady);
+
+    if (!appReady) {
+      // App hasn't finished init yet — save the event and process it later
+      pendingAuthEvent = e;
+      console.log('Auth event queued for later processing.');
+      return;
+    }
+
+    // Reload all user data from cloud (or reset if logged out)
+    await UserDataManager.loadData();
+
+    // Re-render main catalog with updated status/favorite info
+    if (dramaManager) {
+      dramaManager.currentPage = 1;
+      dramaManager.updateFilters();
+    }
+
+    // Re-render profile page sections if on profile page
+    if (profileManager) {
+      if (user) {
+        console.log('Re-rendering profile after auth change...');
+        profileManager.renderProfile();
+      } else {
+        // Logged out — redirect to home
+        window.location.href = 'index.html';
+      }
+    }
+  };
+
+  document.addEventListener('auth:stateChanged', handleAuthChange);
+
+  try {
+    // === Step 2: Fetch dramas from Supabase ===
     const { data: dramas, error } = await window.supabaseClient
       .from('dramas')
       .select('*')
@@ -921,25 +1057,30 @@ async function initApp() {
 
     if (dramas) {
       new ThemeManager();
-      // Load user data first!
+
+      // === Step 3: Load user data ===
+      // If auth event already fired (pendingAuthEvent), AuthManager.user is set
+      // If not, user is null and we load local data only (cloud syncs later on auth event)
       await UserDataManager.loadData();
 
-      const dramaManager = new DramaManager('dramaGrid', dramas);
-      window.dramaManager = dramaManager; // Expose for Profile usage
-      window.reviewManager = new ReviewManager(); // Initialize Review Manager
+      dramaManager = new DramaManager('dramaGrid', dramas);
+      window.dramaManager = dramaManager;
+      window.reviewManager = new ReviewManager();
       new ActorsManager('#atoresCarousel');
 
-      // Initialize Profile if element exists
+      // Initialize Profile if element exists (on profile.html)
       if (document.getElementById('favoritesGrid')) {
-        new ProfileManager(dramas);
+        profileManager = new ProfileManager(dramas);
       }
 
-      // Listen for Auth Changes to reload data
-      document.addEventListener('auth:stateChanged', async () => {
-        await UserDataManager.loadData();
-        dramaManager.currentPage = 1;
-        dramaManager.updateFilters();
-      });
+      // === Step 4: Mark app as ready and process any queued auth event ===
+      appReady = true;
+
+      if (pendingAuthEvent) {
+        console.log('Processing queued auth event...');
+        await handleAuthChange(pendingAuthEvent);
+        pendingAuthEvent = null;
+      }
     }
   } catch (error) {
     console.error("Erro ao carregar os dramas do Supabase:", error);
@@ -954,32 +1095,26 @@ async function initApp() {
       </div>
     `;
 
-    // Show error in dramaGrid checking if it's the main container
     const dramaGrid = document.getElementById('dramaGrid');
     if (dramaGrid) {
       dramaGrid.innerHTML = errorMsg;
       if (dramaGrid.classList.contains('d-none')) {
-        // We are likely on profile page or grid is hidden.
-        // Try to find profile containers to show error
         const favGrid = document.getElementById('favoritesGrid');
         if (favGrid) {
           favGrid.innerHTML = errorMsg;
-          // Also clear other spinners
           ['watchingGrid', 'planGrid', 'completedGrid', 'droppedGrid'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
           });
         } else {
-          // If grid is hidden and no favGrid, force show grid to show error?
           dramaGrid.classList.remove('d-none');
         }
       }
     } else {
-      // Fallback for pages without dramaGrid
       document.body.insertAdjacentHTML('afterbegin', errorMsg);
     }
   }
 }
 
-// Inicia a aplicação
+// Start the application
 initApp();

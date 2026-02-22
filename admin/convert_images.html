@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converter Imagens - Admin</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+
+        .console-output {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-images text-primary"></i> Otimização de Imagens</h2>
+            <a href="index.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Converter Posters e Atores para WebP</h5>
+                <p class="card-text">
+                    Esta ferramenta executa o script Python <code>scripts/optimize_images.py</code> para:
+                </p>
+                <ul>
+                    <li>Escanear as pastas <code>Posters/</code> e <code>atores/</code>.</li>
+                    <li>Converter imagens PNG/JPG para WebP.</li>
+                    <li>Redimensionar imagens grandes (Posters: 800px, Atores: 300px).</li>
+                    <li>Mover arquivos originais para a pasta <code>originais/</code> (backup).</li>
+                </ul>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Certifique-se de que o <strong>Python</strong> está instalado e configurado no PATH do sistema onde
+                    o servidor está rodando.
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button id="btnConvert" class="btn btn-primary btn-lg">
+                        <i class="fas fa-magic"></i> Iniciar Conversão e Otimização
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="consoleBlock" class="console-output">
+            <div id="loadingSpinner" class="text-center my-3" style="display: none;">
+                <div class="spinner-border text-light" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-2 text-muted">Processando... Isso pode levar alguns minutos.</p>
+            </div>
+            <div id="logOutput"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const btnConvert = document.getElementById('btnConvert');
+        const consoleBlock = document.getElementById('consoleBlock');
+        const logOutput = document.getElementById('logOutput');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        btnConvert.addEventListener('click', async () => {
+            // UI Reset
+            consoleBlock.style.display = 'block';
+            logOutput.textContent = '';
+            loadingSpinner.style.display = 'block';
+            btnConvert.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/convert-images', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                loadingSpinner.style.display = 'none';
+
+                if (response.ok) {
+                    logOutput.innerHTML = `<strong>Status:</strong> Sucesso!<br><br>`;
+                    if (data.stdout) {
+                        logOutput.textContent += data.stdout;
+                    } else {
+                        logOutput.textContent += "Nenhuma saída padrão retornada (script pode ter rodado silenciosamente).";
+                    }
+
+                    if (data.stderr) {
+                        logOutput.innerHTML += `<br><br><span class="text-warning"><strong>Avisos/Erros (stderr):</strong></span><br>${data.stderr}`;
+                    }
+                } else {
+                    logOutput.innerHTML = `<span class="text-danger"><strong>Erro:</strong> ${data.error}</span><br>`;
+                    if (data.details) logOutput.innerHTML += `${data.details}<br>`;
+                    if (data.stderr) logOutput.innerHTML += `<br>Stderr:<br>${data.stderr}`;
+                }
+
+            } catch (error) {
+                loadingSpinner.style.display = 'none';
+                logOutput.innerHTML = `<span class="text-danger"><strong>Erro de conexão:</strong> ${error.message}</span>`;
+            } finally {
+                btnConvert.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+
+</html>
