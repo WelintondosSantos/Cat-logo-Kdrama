@@ -1,13 +1,19 @@
+/**
+ * supa-client.js - Inicializador do cliente Supabase
+ *
+ * As credenciais são carregadas a partir de assets/js/config.js
+ * que está no .gitignore e não é rastreado pelo git.
+ *
+ * Para configurar, copie assets/js/config.example.js -> assets/js/config.js
+ * e preencha com suas credenciais reais.
+ */
 
-// Substitua estas variáveis pelas suas credenciais do Supabase
-const SUPABASE_URL = 'https://cmnucjvaahprkgfrcsfh.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_LRSL0mhfOrUvG9ksQbnt4A_jJ7kSSkz';
-
-// Inicializa o cliente Supabase
-// Certifique-se de que a biblioteca supabase-js foi carregada antes deste script
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Exporta o cliente para uso em outros arquivos (se estiver usando módulos)
-// ou deixa disponível globalmente se for script normal.
-// Para este projeto simples, vamos deixar global, mas estruturado.
-window.supabaseClient = _supabase;
+if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
+    console.error(
+        '[supa-client] ERRO: config.js não carregado ou credenciais não definidas.\n' +
+        'Copie assets/js/config.example.js para assets/js/config.js e preencha as credenciais.'
+    );
+} else {
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = _supabase;
+}

@@ -140,23 +140,21 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config.js"></script>
     <script src="../assets/js/supa-client.js"></script>
+    <script src="auth.js"></script>
     <script>
         let allDramas = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Check Auth (Reuse simple check)
-            checkAdmin();
             loadDramas();
         });
 
-        async function checkAdmin() {
-            if (!window.supabaseClient) return;
-            const { data: { session } } = await window.supabaseClient.auth.getSession();
-            if (!session || session.user.email !== 'welintonsilva707@gmail.com') {
-                alert("Acesso negado.");
-                window.location.href = '../index.html';
-            }
+        // Autenticação delegada ao auth.js (carregado acima).
+        // A função checkAdmin() abaixo é apenas um fallback local redundante.
+        function checkAdmin() {
+            // auth.js já realizou a verificação completa de sessão e email.
+            // Nenhuma ação adicional necessária aqui.
         }
 
         async function loadDramas() {

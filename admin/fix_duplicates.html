@@ -19,16 +19,16 @@
                 as duplicatas.
             </p>
 
-        <div class="mb-3">
-            <label class="form-label">Supabase Connection</label>
-            <div class="input-group">
-                <span class="input-group-text">Status</span>
-                <input type="text" class="form-control" id="status" value="Aguardando..." readonly>
+            <div class="mb-3">
+                <label class="form-label">Supabase Connection</label>
+                <div class="input-group">
+                    <span class="input-group-text">Status</span>
+                    <input type="text" class="form-control" id="status" value="Aguardando..." readonly>
+                </div>
+                <small class="text-muted">Uses credentials from <code>assets/js/supa-client.js</code></small>
             </div>
-            <small class="text-muted">Uses credentials from <code>assets/js/supa-client.js</code></small>
-        </div>
 
-        <button id="startBtn" class="btn btn-danger" onclick="startCleanup()">Find & Fix Duplicates</button>
+            <button id="startBtn" class="btn btn-danger" onclick="startCleanup()">Find & Fix Duplicates</button>
 
             <div class="mt-3">
                 <h5>Log:</h5>
@@ -40,7 +40,9 @@
 
     <!-- Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/config.js"></script>
     <script src="../assets/js/supa-client.js"></script>
+    <script src="auth.js"></script>
 
     <script>
         const logEl = document.getElementById('log');

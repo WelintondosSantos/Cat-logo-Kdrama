@@ -28,6 +28,9 @@ Thumbs.db
 .env.test.local
 .env.production.local
 
+# Credenciais do Supabase (NUNCA commitar este arquivo!)
+assets/js/config.js
+
 # Build e Distribuição
 dist/
 build/
