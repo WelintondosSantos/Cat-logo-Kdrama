@@ -40,7 +40,10 @@ const AuthManager = {
             const existingAdminBtn = document.getElementById('adminBtn');
             if (existingAdminBtn) existingAdminBtn.remove(); // Prevent duplicates
 
-            if (this.user.email === 'welintonsilva707@gmail.com') {
+            // Usar lista centralizada do config.js
+            const allowedAdmins = (typeof ADMIN_EMAILS !== 'undefined') ? ADMIN_EMAILS : [];
+
+            if (allowedAdmins.includes(this.user.email)) {
                 const logoutBtnLi = document.getElementById('logoutBtn').parentElement;
                 const adminLi = document.createElement('li');
                 adminLi.innerHTML = `
@@ -77,7 +80,8 @@ const AuthManager = {
             });
 
             if (error) {
-                this.showMessage(error.message, 'danger');
+                console.error('[Auth] Erro no login:', error);
+                this.showMessage(`Erro: ${error.message} (Verifique o console para detalhes)`, 'danger');
             } else {
                 this.showMessage('Login realizado com sucesso!', 'success');
                 this.closeModal();
