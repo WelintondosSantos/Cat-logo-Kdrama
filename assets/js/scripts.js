@@ -9,6 +9,16 @@ function getDramaImage(imageName) {
   return `${CONFIG.basePath}${imageName}${CONFIG.imageExtension}`;
 }
 
+// Carrega JSON local de um path relativo. Usado como fallback quando
+// o Supabase não está disponível (por exemplo, site estático no GitHub Pages).
+async function fetchLocalJson(path) {
+  const resp = await fetch(path);
+  if (!resp.ok) {
+    throw new Error(`Falha ao carregar ${path}: ${resp.status}`);
+  }
+  return resp.json();
+}
+
 // Gerenciador de Dados do Usuário (Cloud + LocalStorage)
 class UserDataManager {
   static _loading = false;
@@ -776,21 +786,23 @@ class ActorsManager {
 
   async init() {
     try {
-      // SUBSTITUIÇÃO: Fetch do Supabase em vez de arquivo JSON
-      // const response = await fetch('atores.json');
-      // const actors = await response.json();
-
-      const { data: actors, error } = await window.supabaseClient
-        .from('atores')
-        .select('*');
-
-      if (error) throw error;
+      let actors;
+      if (window.supabaseClient) {
+        const { data, error } = await window.supabaseClient
+          .from('atores')
+          .select('*');
+        if (error) throw error;
+        actors = data;
+      } else {
+        // fallback para JSON estático
+        actors = await fetchLocalJson('data/atores.json');
+      }
 
       if (actors) {
         this.renderActors(actors);
       }
     } catch (error) {
-      console.error("Erro ao carregar atores do Supabase:", error);
+      console.error("Erro ao carregar atores:", error);
       // Fallback opcional ou mensagem de erro na UI
       this.carouselInner.innerHTML = '<div class="text-center p-4">Erro ao carregar atores. Verifique a conexão.</div>';
     }
@@ -887,6 +899,13 @@ class ReviewManager {
   async loadReviews(dramaId) {
     this.currentDramaId = dramaId;
     this.reviewsList.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>';
+
+    // Se não há supabase, desabilitamos reviews e saímos cedo
+    if (!window.supabaseClient) {
+      this.reviewsList.innerHTML = '<p class="text-muted small">Avaliações indisponíveis.</p>';
+      this.userReviewFormContainer.classList.add('d-none');
+      return;
+    }
 
     // Check if user is logged in to show form
     if (AuthManager && AuthManager.user) {
@@ -1047,13 +1066,19 @@ async function initApp() {
   document.addEventListener('auth:stateChanged', handleAuthChange);
 
   try {
-    // === Step 2: Fetch dramas from Supabase ===
-    const { data: dramas, error } = await window.supabaseClient
-      .from('dramas')
-      .select('*')
-      .order('title', { ascending: true });
-
-    if (error) throw error;
+    // === Step 2: Load dramas ===
+    let dramas;
+    if (window.supabaseClient) {
+      const { data, error } = await window.supabaseClient
+        .from('dramas')
+        .select('*')
+        .order('title', { ascending: true });
+      if (error) throw error;
+      dramas = data;
+    } else {
+      // fallback para JSON estático hospedado no mesmo repositório
+      dramas = await fetchLocalJson('data/dramas.json');
+    }
 
     if (dramas) {
       new ThemeManager();
