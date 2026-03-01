@@ -123,6 +123,67 @@
             </div>
 
         </div>
+
+        <!-- User Guide Section -->
+        <div class="mt-5 pb-5">
+            <hr class="mb-5">
+            <h2 class="fw-bold mb-4"><i class="bi bi-info-circle-fill text-primary"></i> Guia de Uso das Ferramentas</h2>
+
+            <div class="row g-4">
+                <!-- Como Adicionar um Drama -->
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px;">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-primary mb-3">
+                                <i class="bi bi-1-circle-fill"></i> Adicionar Drama
+                            </h5>
+                            <ol class="small text-muted ps-3">
+                                <li class="mb-2">Acesse <strong>Gerenciar Dramas</strong> no painel acima.</li>
+                                <li class="mb-2">Clique no botão azul <strong>+ Novo Drama</strong>.</li>
+                                <li class="mb-2">Preencha as informações do drama (Título, Ano, Gêneros).</li>
+                                <li class="mb-2">No campo <strong>Imagem</strong>, você pode colocar apenas o nome (ex: <code>18-Again</code>) que o sistema buscará na pasta de posters.</li>
+                                <li class="mb-2">Clique em <strong>Salvar</strong>. O drama aparecerá instantaneamente no site.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Como Adicionar um Ator -->
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px;">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-success mb-3">
+                                <i class="bi bi-2-circle-fill"></i> Adicionar Ator
+                            </h5>
+                            <ol class="small text-muted ps-3">
+                                <li class="mb-2">Acesse <strong>Gerenciar Atores</strong>.</li>
+                                <li class="mb-2">Digite o nome do ator e faça o upload da foto diretamente do seu computador.</li>
+                                <li class="mb-2">A foto será enviada para o armazenamento seguro (Supabase Storage).</li>
+                                <li class="mb-2">Clique em <strong>Adicionar Ator</strong> e ele aparecerá no carrossel de atores da página inicial.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sincronização -->
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px;">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-info mb-3">
+                                <i class="bi bi-3-circle-fill"></i> Sincronização (Massa)
+                            </h5>
+                            <p class="small text-muted">Use isto para atualizar centenas de dramas de uma vez usando o arquivo <code>dramas.json</code>:</p>
+                            <ol class="small text-muted ps-3">
+                                <li class="mb-2">Acesse <strong>Sincronizar Dramas</strong>.</li>
+                                <li class="mb-2">A ferramenta lerá todos os dramas do arquivo local.</li>
+                                <li class="mb-2">Clique em <strong>Iniciar Sincronização</strong>.</li>
+                                <li class="mb-2">O sistema verificará duplicatas e atualizará/inserirá tudo no banco de dados automaticamente.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Auth Script Check (Simple) -->
