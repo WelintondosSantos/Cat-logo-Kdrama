@@ -122,64 +122,74 @@
                 </div>
             </div>
 
+            <!-- User Guide (New) -->
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm admin-card border-info" data-bs-toggle="modal"
+                    data-bs-target="#guideModal">
+                    <div class="card-body text-center">
+                        <h1 class="text-info mb-3"><i class="bi bi-question-circle"></i></h1>
+                        <h5 class="card-title fw-bold">Guia de Uso</h5>
+                        <p class="card-text text-muted">Como usar as ferramentas.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- User Guide Section -->
-        <div class="mt-5 pb-5">
-            <hr class="mb-5">
-            <h2 class="fw-bold mb-4"><i class="bi bi-info-circle-fill text-primary"></i> Guia de Uso das Ferramentas</h2>
-
-            <div class="row g-4">
-                <!-- Como Adicionar um Drama -->
-                <div class="col-md-4">
-                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px;">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold text-primary mb-3">
-                                <i class="bi bi-1-circle-fill"></i> Adicionar Drama
-                            </h5>
-                            <ol class="small text-muted ps-3">
-                                <li class="mb-2">Acesse <strong>Gerenciar Dramas</strong> no painel acima.</li>
-                                <li class="mb-2">Clique no botão azul <strong>+ Novo Drama</strong>.</li>
-                                <li class="mb-2">Preencha as informações do drama (Título, Ano, Gêneros).</li>
-                                <li class="mb-2">No campo <strong>Imagem</strong>, você pode colocar apenas o nome (ex: <code>18-Again</code>) que o sistema buscará na pasta de posters.</li>
-                                <li class="mb-2">Clique em <strong>Salvar</strong>. O drama aparecerá instantaneamente no site.</li>
-                            </ol>
+        <!-- User Guide Modal -->
+        <div class="modal fade text-dark" id="guideModal" tabindex="-1" aria-labelledby="guideModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" style="border-radius: 20px;">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold fs-4" id="guideModalLabel">
+                            <i class="bi bi-info-circle-fill text-primary"></i> Guia de Uso das Ferramentas
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row g-4">
+                            <!-- Como Adicionar um Drama -->
+                            <div class="col-md-12">
+                                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-1-circle-fill"></i> Adicionar
+                                    Drama</h6>
+                                <ul class="text-muted ps-3 small">
+                                    <li class="mb-1">Clique em <strong>Gerenciar Dramas</strong> -> <strong>+ Novo
+                                            Drama</strong>.</li>
+                                    <li class="mb-1">Preencha o formulário. No campo <strong>Imagem</strong>, use apenas
+                                        o nome (ex: <code>18-Again</code>).</li>
+                                    <li class="mb-1">Clique em <strong>Salvar</strong> para publicar imediatamente.</li>
+                                </ul>
+                            </div>
+                            <hr class="my-2">
+                            <!-- Como Adicionar um Ator -->
+                            <div class="col-md-12">
+                                <h6 class="fw-bold text-success mb-2"><i class="bi bi-2-circle-fill"></i> Adicionar Ator
+                                </h6>
+                                <ul class="text-muted ps-3 small">
+                                    <li class="mb-1">Clique em <strong>Gerenciar Atores</strong>.</li>
+                                    <li class="mb-1">Digite o nome e faça o upload da foto.</li>
+                                    <li class="mb-1">Ela será salva no Supabase Storage e aparecerá no carrossel.</li>
+                                </ul>
+                            </div>
+                            <hr class="my-2">
+                            <!-- Sincronização -->
+                            <div class="col-md-12">
+                                <h6 class="fw-bold text-info mb-2"><i class="bi bi-3-circle-fill"></i> Sincronização em
+                                    Massa</h6>
+                                <ul class="text-muted ps-3 small">
+                                    <li class="mb-1">Use <strong>Sincronizar Dramas</strong> para ler o arquivo
+                                        <code>dramas.json</code>.
+                                    </li>
+                                    <li class="mb-1">Isso atualiza centenas de registros de uma só vez no banco de
+                                        dados.</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Como Adicionar um Ator -->
-                <div class="col-md-4">
-                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px;">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold text-success mb-3">
-                                <i class="bi bi-2-circle-fill"></i> Adicionar Ator
-                            </h5>
-                            <ol class="small text-muted ps-3">
-                                <li class="mb-2">Acesse <strong>Gerenciar Atores</strong>.</li>
-                                <li class="mb-2">Digite o nome do ator e faça o upload da foto diretamente do seu computador.</li>
-                                <li class="mb-2">A foto será enviada para o armazenamento seguro (Supabase Storage).</li>
-                                <li class="mb-2">Clique em <strong>Adicionar Ator</strong> e ele aparecerá no carrossel de atores da página inicial.</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sincronização -->
-                <div class="col-md-4">
-                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px;">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold text-info mb-3">
-                                <i class="bi bi-3-circle-fill"></i> Sincronização (Massa)
-                            </h5>
-                            <p class="small text-muted">Use isto para atualizar centenas de dramas de uma vez usando o arquivo <code>dramas.json</code>:</p>
-                            <ol class="small text-muted ps-3">
-                                <li class="mb-2">Acesse <strong>Sincronizar Dramas</strong>.</li>
-                                <li class="mb-2">A ferramenta lerá todos os dramas do arquivo local.</li>
-                                <li class="mb-2">Clique em <strong>Iniciar Sincronização</strong>.</li>
-                                <li class="mb-2">O sistema verificará duplicatas e atualizará/inserirá tudo no banco de dados automaticamente.</li>
-                            </ol>
-                        </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal"
+                            style="border-radius: 10px;">Entendi</button>
                     </div>
                 </div>
             </div>
